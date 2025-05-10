@@ -26,8 +26,11 @@ namespace PokemonPocket
             // Variable to hold the user's choice
             char choice;
             // Create a boolean variable to control the loop
+            // Set to true to start the loop or continue the program
+            // Set to false to exit the loop or quit the program
             bool running = true;
 
+            // Main loop to display the menu and handle user input
             while (running)
             {
                 // Display the menu
@@ -47,31 +50,33 @@ namespace PokemonPocket
                     choice = Console.ReadKey(true).KeyChar;
                     Console.WriteLine(choice);
 
-                    // Check if the choice is valid
+                    // Process the user's choice
+                    // Use a switch statement to handle different choices
                     switch (choice)
                     {
-                        // Add a new Pokémon to the pocket
+                        // Option 1: Add a new Pokémon to the pocket
                         case '1':
                             AddPokemon(pokemonPocket);
                             break;
-                        // List all Pokémon in the pocket
+                        // Option 2: List all Pokémon in the pocket
                         case '2':
                             ListPokemon(pokemonPocket);
                             break;
-                        // Check if I can evolve Pokémon
+                        // Option 3: Check if I can evolve Pokémon
                         case '3':
                             CheckEvolution(pokemonPocket, pokemonMasters);
                             break;
-                        // Evolve Pokémon if possible
+                        // Option 4: Evolve Pokémon if possible
                         case '4':
                             EvolvePokemon(pokemonPocket, pokemonMasters);
                             break;
-                        // Exit the program
+                        // Exit the program if the user enters 'q'Lowercase or 'Q'Uppercase
                         case 'q':
                         case 'Q':
                             running = false;
                             break;
                         default:
+                            // Handel invalid menu selection
                             Console.WriteLine("Invalid choice. Please enter a number between 1 and 4 or Q to quit.");
                             break;
                     }
@@ -85,6 +90,7 @@ namespace PokemonPocket
             }
         }
 
+        // Add new Pokémon to the pocket
         private static void AddPokemon(List<Pokemon> pokemonPocket)
         {
             try
@@ -92,15 +98,18 @@ namespace PokemonPocket
                 // Prompt the user for Pokémon name 
                 Console.WriteLine("Enter the name of the Pokémon: ");
                 // Read the Pokémon name from the user
-                string name = Console.ReadLine();
+                string name = Console.ReadLine(Name);
 
                 // Check if the name is empty or null
-                if (string.IsNullOrWhiteSpace(input))
+                if (string.IsNullOrWhiteSpace())
                 {
                     Console.WriteLine("Name caannot be empty.");
                     return;
                 }
-                string name = input.Trim();
+                // Trim the input to remove leading and trailing whitespaces from the name
+                string Name = input.Trim();
+
+                // validate the name corresponds to a valid Pokémon type
                 if (pokemonType == null)
                 {
                     Console.WriteLine("Invalid Pokémon type. Please enter a valid type.");
@@ -261,12 +270,14 @@ namespace PokemonPocket
                             evolvedPokemon = new Charmeleon(master.EvolveTo, 100, 0);
                             break;
                     }
-
+                    // Add the evolved Pokemon to the pocket
                     pokemonPocket.Add(evolvedPokemon);
+                    Console.WriteLine($"{master.Name} evolved into {master.EvolveTo}!");
                     anyEvolved = true;
                 }
             }
 
+            // IF no Pokemon were evolved, inform the user
             if (!anyEvolved)
             {
                 Console.WriteLine("You don't have enough Pokemon to evolve.");
