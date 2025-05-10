@@ -12,3 +12,11 @@ C:\Users\Novita\Downloads\Assignment1-20250408T095438Z-001\Assignment1\PokemonPo
 C:\Users\Novita\Downloads\Assignment1-20250408T095438Z-001\Assignment1\PokemonPocket\PokemonPocket\obj\Debug\net9.0\PokemonPocket.pdb
 C:\Users\Novita\Downloads\Assignment1-20250408T095438Z-001\Assignment1\PokemonPocket\PokemonPocket\obj\Debug\net9.0\PokemonPocket.genruntimeconfig.cache
 C:\Users\Novita\Downloads\Assignment1-20250408T095438Z-001\Assignment1\PokemonPocket\PokemonPocket\obj\Debug\net9.0\ref\PokemonPocket.dll
+C:\Users\tKQpAc\Documents\Pokémon Pocket\Advance_Programming_Pok-mon_Pocket\PokemonPocket\obj\Debug\net9.0\PokemonPocket.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\tKQpAc\Documents\Pokémon Pocket\Advance_Programming_Pok-mon_Pocket\PokemonPocket\obj\Debug\net9.0\PokemonPocket.AssemblyInfoInputs.cache
+C:\Users\tKQpAc\Documents\Pokémon Pocket\Advance_Programming_Pok-mon_Pocket\PokemonPocket\obj\Debug\net9.0\PokemonPocket.AssemblyInfo.cs
+C:\Users\tKQpAc\Documents\Pokémon Pocket\Advance_Programming_Pok-mon_Pocket\PokemonPocket\obj\Debug\net9.0\PokemonPocket.csproj.CoreCompileInputs.cache
+C:\Users\tKQpAc\Documents\Pokémon Pocket\Advance_Programming_Pok-mon_Pocket\PokemonPocket\obj\Debug\net9.0\PokemonPocket.sourcelink.json
+C:\Users\tKQpAc\Documents\Pokémon Pocket\Advance_Programming_Pok-mon_Pocket\PokemonPocket\obj\Debug\net9.0\PokemonPocket.dll
+C:\Users\tKQpAc\Documents\Pokémon Pocket\Advance_Programming_Pok-mon_Pocket\PokemonPocket\obj\Debug\net9.0\refint\PokemonPocket.dll
+C:\Users\tKQpAc\Documents\Pokémon Pocket\Advance_Programming_Pok-mon_Pocket\PokemonPocket\obj\Debug\net9.0\PokemonPocket.pdb
