@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 
 namespace PokemonPocket
 {
@@ -41,7 +42,10 @@ namespace PokemonPocket
                 Console.WriteLine("(2). List pokemon(s) in my Pocket");
                 Console.WriteLine("(3). Check if I can evolve pokemon");
                 Console.WriteLine("(4). Evolve pokemon");
-                Console.Write("Please only enter [1,2,3,4] or Q to quit: ");
+                Console.WriteLine("(5). Battle Arena");
+                Console.WriteLine("(6). Training Center");
+                Console.WriteLine("(7). Save & Load");
+                Console.Write("Please only enter [1,2,3,4,5,6,7] or Q to quit: ");
 
                 // Read user input with validation
                 try
@@ -283,6 +287,414 @@ namespace PokemonPocket
                 Console.WriteLine("You don't have enough Pokemon to evolve.");
             }
         }
+
+        private static void BattleArena()
+        {
+            Console.WriteLine("Welcome to the Battle Arena!");
+
+            if (pokemonPocket.Count < 2)
+            {
+                Console.WriteLine("You need at least 2 Pokémon to battle.");
+                return;
+            }
+
+            Console.WriteLine("Choose your Pokémon to battle: ");
+            for (int i = 0; i < pokemonPocket.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}. {pokemonPocket[i].Name} {pokemonPocket[i].GetType().Name}, HP: {pokemonPocket[i].HP}, EXP: {pokemonPocket[i].Exp}");
+            }
+
+            Console.Write("\nSelect your first Pokémon (number): ");
+
+            if (!int.TryParse(Console.ReadLine(), out int choice1) || choice1 < 1 || choice1 > pokemonPocket.Count)
+            {
+                Console.WriteLine("Invalid selection.");
+                return;
+            }
+
+            // Select second Pokemon
+            Console.Write("Select second Pokemon (number): ");
+            if (!int.TryParse(Console.ReadLine(), out int choice2) ||
+                choice2 < 1 || choice2 > pokemonPocket.Count ||
+                choice1 == choice2)
+            {
+                Console.WriteLine("Invalid selection.");
+                return;
+            }
+
+            // Get the selected Pokémon
+            Pokemon pokemon1 = pokemonPocket[choice1 = 1];
+            Pokemon pokemon2 = PokemonPocket[choice1 = 2];
+
+            // Store orginal HP values
+            int originalHP1 = pokemon1.HP;
+            int originalHP2 = pokemon2.HP;
+
+            // Battel animation and setup
+            Console.Clear();
+            Console.WriteLine($"\n === Battle Start! {pokemon1.Name} VS {pokemon2.Name} ===");
+
+            Console.WriteLine($"{pokemon1.Name} HP: {pokemon1.HP}");
+            Console.WriteLine($"{pokemon2.Name} HP: {pokemon2.HP}");
+
+            Console.WriteLine("3...");
+            Thread.Sleep(800);
+            Console.WriteLine("2...");
+            Thread.Sleep(800);
+            Console.WriteLine("1...");
+            Thread.Sleep(800);
+            Console.WriteLine("Battle Start!\n");
+
+            // Battel rounds (maximum 3 rounds)
+            for (int round = 1; round <= 3; round++)
+            {
+                Console.WriteLine($"--- Round {round} ---");
+
+                // Pokemon 1 attacks
+                Console.WriteLine($"{pokemon1.Name} uses {pokemon1.Skill} for {pokemon1.SkillDamage} damage!");
+                int originalHP2BeforeAttack = pokemon2.HP;
+                pokemon2.CalculateDamage(pokemon1.SkillDamage);
+                Console.WriteLine($"{pokemon2.Name} HP decreased by {originalHP2BeforeAttack - pokemon2.HP} points!  (HP: {pokemon2.HP})");
+                Thread.Sleep(1000);
+
+                // Check if pokemon 2 is knocked out
+                if (pokemon2.HP <= 0)
+                {
+                    Console.WriteLine($"\n{pokemon2.Name} is knocked out! {pokemon1.Name} wins!");
+                    AwardExperience(pokemon1, 15);
+                    break;
+                }
+
+                // Pokemon 2 attacks
+                Console.WriteLine($"{pokemon2.Name} uses {pokemon2.Skill} for {pokemon2.SkillDamage} damage!");
+                int originalHP1BeforeAttack = pokemon1.HP;
+                pokemon1.CalculateDamage(pokemon2.SkillDamage);
+                Console.WriteLine($"{pokemon1.Name} HP decreased by {originalHP1BeforeAttack - pokemon1.HP} points!  (HP: {pokemon1.HP})");
+                Thread.Sleep(1000);
+
+                // Check if pokemon 1 is knocked out
+                if (pokemon1.HP <= 0)
+                {
+                    Console.WriteLine($"\n{pokemon1.Name} is knocked out! {pokemon2.Name} wins!");
+                    AwardExperience(pokemon2, 15);
+                    break;
+                }
+
+                // Pause between rounds
+                if (round < 3)
+                {
+                    Console.WriteLine("\n--- Preparing for next round ---");
+                    Thread.Sleep(1500);
+                }
+            }
+
+            // Determine the winner if neither knocked out after 3 rounds
+            if (pokemon1.HP > 0 && pokemon2.HP > 0)
+            {
+                double hp1Percent = (double)pokemon1.HP / originalHP1;
+                double hp2Percent = (double)pokemon2.HP / originalHP2;
+
+                if (hp1Percent > hp2Percent)
+                {
+                    Console.WriteLine($"\n{pokemon1.Name} wins by having more HP remaining!");
+                    AwardExperience(pokemon1, 10);
+                }
+                else if (hp2Percent > hp1Percent)
+                {
+                    Console.WriteLine($"\n{pokemon2.Name} wins by having more HP remaining!");
+                    AwardExperience(pokemon2, 10);
+                }
+                else
+                {
+                    Console.WriteLine("\nThe battel end with a draw!");
+                    AwardExperience(pokemon1, 5);
+                    AwardExperience(pokemon2, 5);
+                }
+            }
+
+            // Reset Pokémon HP after the battle
+            pokemon1.HP = originalHP1;
+            pokemon2.HP = originalHP2;
+
+            Console.WriteLine("\nBattel completed! HP has been restored.");
+        }
+
+        // Helper method for battel experience
+        private static void AwardExperience(Pokemon pokemon, int exp)
+        {
+            pokemon.Exp += expAmount;
+            Console.WriteLine($"{pokemon.Name} gained {exp} EXP!");
+        }
+
+        // Create feature for training center
+        private static void TrainPokemon(List<Pokemon> pokemonPocket)
+        {
+            Console.WriteLine("\n=== Pokemon Training Center ===");
+
+            if (pokemonPocket.Count == 0)
+            {
+                Console.WriteLine("You don't have any Pokemon to train!");
+                return;
+            }
+
+            // List available Pokemon
+            Console.WriteLine("Choose a Pokemon to train:");
+            for (int i = 0; i < pokemonPocket.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}. {pokemonPocket[i].Name} ({pokemonPocket[i].GetType().Name}, HP: {pokemonPocket[i].HP}, Exp: {pokemonPocket[i].Exp})");
+            }
+
+            Console.Write("\nSelect Pokemon (number): ");
+            if (!int.TryParse(Console.ReadLine(), out int choice) ||
+                choice < 1 || choice > pokemonPocket.Count)
+            {
+                Console.WriteLine("Invalid selection.");
+                return;
+            }
+
+            Pokemon selectedPokemon = pokemonPocket[choice - 1];
+
+            Console.WriteLine("\n=== Training Options ===");
+            Console.WriteLine("1. HP Training (Increase HP by 10)");
+            Console.WriteLine("2. Experience Training (Gain 15 Exp)");
+            Console.WriteLine("3. Special Training (Random improvement)");
+            Console.Write("Choose training type: ");
+
+            if (!int.TryParse(Console.ReadLine(), out int trainingType) ||
+                trainingType < 1 || trainingType > 3)
+            {
+                Console.WriteLine("Invalid training type.");
+                return;
+            }
+
+            // Animation for training
+            Console.WriteLine("\nTraining in progress...");
+            for (int i = 0; i < 5; i++)
+            {
+                Console.Write(".");
+                Thread.Sleep(300);
+            }
+            Console.WriteLine("\n");
+
+            // Apply training effects
+            switch (trainingType)
+            {
+                case 1: // HP Training
+                    int originalHP = selectedPokemon.HP;
+                    selectedPokemon.HP += 10;
+                    Console.WriteLine($"{selectedPokemon.Name}'s HP increased from {originalHP} to {selectedPokemon.HP}!");
+                    break;
+
+                case 2: // Experience Training
+                    int originalExp = selectedPokemon.Exp;
+                    selectedPokemon.Exp += 15;
+                    Console.WriteLine($"{selectedPokemon.Name}'s Experience increased from {originalExp} to {selectedPokemon.Exp}!");
+                    break;
+
+                case 3: // Special Random Training
+                    Random random = new Random();
+                    int randomTraining = random.Next(1, 4);
+
+                    switch (randomTraining)
+                    {
+                        case 1: // Big HP boost
+                            originalHP = selectedPokemon.HP;
+                            selectedPokemon.HP += 20;
+                            Console.WriteLine($"SPECIAL TRAINING SUCCESS! {selectedPokemon.Name}'s HP got a major boost from {originalHP} to {selectedPokemon.HP}!");
+                            break;
+
+                        case 2: // Big Exp boost
+                            originalExp = selectedPokemon.Exp;
+                            selectedPokemon.Exp += 30;
+                            Console.WriteLine($"SPECIAL TRAINING SUCCESS! {selectedPokemon.Name}'s Experience got a major boost from {originalExp} to {selectedPokemon.Exp}!");
+                            break;
+
+                        case 3: // Both HP and Exp boost
+                            originalHP = selectedPokemon.HP;
+                            originalExp = selectedPokemon.Exp;
+                            selectedPokemon.HP += 10;
+                            selectedPokemon.Exp += 10;
+                            Console.WriteLine($"SPECIAL TRAINING SUCCESS! {selectedPokemon.Name} improved in both stats!");
+                            Console.WriteLine($"HP: {originalHP} → {selectedPokemon.HP}");
+                            Console.WriteLine($"Exp: {originalExp} → {selectedPokemon.Exp}");
+                            break;
+                    }
+                    break;
+            }
+
+            Console.WriteLine("\nTraining complete!");
+        }
+
+        // CREATIVE FEATURE #3: Save/Load System
+        private static void SaveLoadMenu(List<Pokemon> pokemonPocket)
+        {
+            Console.WriteLine("\n=== Save/Load System ===");
+            Console.WriteLine("1. Save current Pokemon data");
+            Console.WriteLine("2. Load saved Pokemon data");
+            Console.Write("Choose an option: ");
+
+            if (!int.TryParse(Console.ReadLine(), out int choice) ||
+                choice < 1 || choice > 2)
+            {
+                Console.WriteLine("Invalid option.");
+                return;
+            }
+
+            switch (choice)
+            {
+                case 1:
+                    SavePokemonData(pokemonPocket);
+                    break;
+                case 2:
+                    LoadPokemonData(pokemonPocket);
+                    break;
+            }
+        }
+
+        private static void SavePokemonData(List<Pokemon> pokemonPocket)
+        {
+            try
+            {
+                // Animation
+                Console.WriteLine("\nSaving your Pokemon data...");
+
+                using (StreamWriter writer = new StreamWriter(SaveFilePath))
+                {
+                    // Write header
+                    writer.WriteLine("Type,Name,HP,Exp");
+
+                    // Write each Pokemon's data
+                    foreach (Pokemon pokemon in pokemonPocket)
+                    {
+                        string type = pokemon.GetType().Name;
+                        writer.WriteLine($"{type},{pokemon.Name},{pokemon.HP},{pokemon.Exp}");
+                    }
+                }
+
+                Console.WriteLine($"Pokemon data successfully saved to {SaveFilePath}!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving data: {ex.Message}");
+            }
+        }
+
+        private static void LoadPokemonData(List<Pokemon> pokemonPocket)
+        {
+            if (!File.Exists(SaveFilePath))
+            {
+                Console.WriteLine("\nNo save file found. Starting with an empty Pokemon pocket.");
+                return;
+            }
+
+            try
+            {
+                Console.WriteLine("\nLoading Pokemon data...");
+
+                // Clear current Pokemon list
+                pokemonPocket.Clear();
+
+                // Read save file
+                string[] lines = File.ReadAllLines(SaveFilePath);
+
+                // Skip header
+                for (int i = 1; i < lines.Length; i++)
+                {
+                    string[] data = lines[i].Split(',');
+                    if (data.Length != 4)
+                    {
+                        Console.WriteLine($"Skipping invalid line: {lines[i]}");
+                        continue;
+                    }
+
+                    string type = data[0];
+                    string name = data[1];
+                    int hp = int.Parse(data[2]);
+                    int exp = int.Parse(data[3]);
+
+                    Pokemon pokemon = null;
+
+                    switch (type)
+                    {
+                        case "Pikachu":
+                            pokemon = new Pikachu(name, hp, exp);
+                            break;
+                        case "Eevee":
+                            pokemon = new Eevee(name, hp, exp);
+                            break;
+                        case "Charmander":
+                            pokemon = new Charmander(name, hp, exp);
+                            break;
+                        case "Raichu":
+                            pokemon = new Raichu(name, hp, exp);
+                            break;
+                        case "Flareon":
+                            pokemon = new Flareon(name, hp, exp);
+                            break;
+                        case "Charmeleon":
+                            pokemon = new Charmeleon(name, hp, exp);
+                            break;
+                        default:
+                            Console.WriteLine($"Unknown Pokemon type: {type}");
+                            continue;
+                    }
+
+                    pokemonPocket.Add(pokemon);
+                }
+
+                Console.WriteLine($"Successfully loaded {pokemonPocket.Count} Pokemon from save file!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading data: {ex.Message}");
+            }
+
+        // Evolution Animation
+        private static void ShowEvolutionAnimation()
+        {
+            Console.WriteLine("\nEvolution in progress:");
+
+            string[] evolutionFrames = {
+                "[ * * * ]",
+                "[* * * *]",
+                "[ * * * ]",
+                "[* * * *]",
+                "[**EVOLVING**]"
+            };
+
+            foreach (string frame in evolutionFrames)
+            {
+                Console.WriteLine(frame);
+                Thread.Sleep(500);
+                Console.SetCursorPosition(0, Console.CursorTop - 1);
+                Console.WriteLine(new string(' ', frame.Length));
+                Console.SetCursorPosition(0, Console.CursorTop - 1);
+            }
+
+            Console.WriteLine("EVOLUTION COMPLETE!");
+            Thread.Sleep(1000);
+        }
+
+        // Determine Pokémon type based on user input
+        private static string DeterminePokemonType(string name)
+        {
+            string lowerName = name.ToLower();
+            
+            if (lowerName.Contains("pikachu"))
+                return "Pikachu";
+            else if (lowerName.Contains("eevee"))
+                return "Eevee";
+            else if (lowerName.Contains("charmander"))
+                return "Charmander";
+            else if (lowerName.Contains("raichu"))
+                return "Raichu";
+            else if (lowerName.Contains("flareon"))
+                return "Flareon";
+            else if (lowerName.Contains("charmeleon"))
+                return "Charmeleon";
+            
+            return null;
+        }        
     }
 }
 
