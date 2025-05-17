@@ -20,3 +20,4 @@ C:\Users\tKQpAc\Documents\Pokémon Pocket\Advance_Programming_Pok-mon_Pocket\Pok
 C:\Users\tKQpAc\Documents\Pokémon Pocket\Advance_Programming_Pok-mon_Pocket\PokemonPocket\obj\Debug\net9.0\PokemonPocket.dll
 C:\Users\tKQpAc\Documents\Pokémon Pocket\Advance_Programming_Pok-mon_Pocket\PokemonPocket\obj\Debug\net9.0\refint\PokemonPocket.dll
 C:\Users\tKQpAc\Documents\Pokémon Pocket\Advance_Programming_Pok-mon_Pocket\PokemonPocket\obj\Debug\net9.0\PokemonPocket.pdb
+C:\Users\tKQpAc\Documents\Pokémon Pocket\Advance_Programming_Pok-mon_Pocket\PokemonPocket\obj\Debug\net9.0\PokemonPocket.csproj.AssemblyReference.cache

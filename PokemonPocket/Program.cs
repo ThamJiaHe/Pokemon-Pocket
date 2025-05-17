@@ -733,91 +733,19 @@ namespace PokemonPocket
             Thread.Sleep(1000);
         }
 
-        // Method to initialize the database
+        // Methods for database operations
         private static void InitializeDatabase(List<PokemonMaster> pokemonMasters)
         {
             try
             {
-                // Create the Database directory if it doesn't exist
-                Directory.CreateDirectory(DatabaseDirectory);
-                
-                // Create connection string
-                string connectionString = $"Data Source={DatabasePath}";
-                
-                using (var connection = new SqliteConnection(connectionString))
+                using (var db = new PokemonDbContext(DatabasePath))
                 {
-                    connection.Open();
-                    
-                    // Create PokemonMasters table
-                    using (var command = connection.CreateCommand())
+                    // Check if database has been seeded already
+                    if (!db.EnsureCreated())
                     {
-                        command.CommandText = @"
-                            CREATE TABLE IF NOT EXISTS PokemonMasters (
-                                Id INTEGER PRIMARY KEY,
-                                Name TEXT NOT NULL,
-                                NoToEvolve INTEGER NOT NULL,
-                                EvolveTo TEXT NOT NULL
-                            )";
-                        command.ExecuteNonQuery();
-                    }
-                    
-                    // Create Pokemons table
-                    using (var command = connection.CreateCommand())
-                    {
-                        command.CommandText = @"
-                            CREATE TABLE IF NOT EXISTS Pokemons (
-                                Id INTEGER PRIMARY KEY,
-                                Name TEXT NOT NULL,
-                                Type TEXT NOT NULL,
-                                HP INTEGER NOT NULL,
-                                Exp INTEGER NOT NULL,
-                                Skill TEXT NOT NULL,
-                                SkillDamage INTEGER NOT NULL
-                            )";
-                        command.ExecuteNonQuery();
-                    }
-                    
-                    // Check if PokemonMasters has data
-                    using (var command = connection.CreateCommand())
-                    {
-                        command.CommandText = "SELECT COUNT(*) FROM PokemonMasters";
-                        long count = (long)command.ExecuteScalar();
-                        
-                        // If no data exists, seed the table
-                        if (count == 0)
-                        {
-                            using (var transaction = connection.BeginTransaction())
-                            {
-                                using (var insertCommand = connection.CreateCommand())
-                                {
-                                    insertCommand.CommandText = "INSERT INTO PokemonMasters (Name, NoToEvolve, EvolveTo) VALUES (@Name, @NoToEvolve, @EvolveTo)";
-                                    
-                                    // Parameters need to be recreated for each execution
-                                    var nameParam = insertCommand.CreateParameter();
-                                    nameParam.ParameterName = "@Name";
-                                    insertCommand.Parameters.Add(nameParam);
-                                    
-                                    var noToEvolveParam = insertCommand.CreateParameter();
-                                    noToEvolveParam.ParameterName = "@NoToEvolve";
-                                    insertCommand.Parameters.Add(noToEvolveParam);
-                                    
-                                    var evolveToParam = insertCommand.CreateParameter();
-                                    evolveToParam.ParameterName = "@EvolveTo";
-                                    insertCommand.Parameters.Add(evolveToParam);
-                                    
-                                    // Insert each Pokemon master
-                                    foreach (var master in pokemonMasters)
-                                    {
-                                        nameParam.Value = master.Name;
-                                        noToEvolveParam.Value = master.NoToEvolve;
-                                        evolveToParam.Value = master.EvolveTo;
-                                        insertCommand.ExecuteNonQuery();
-                                    }
-                                }
-                                transaction.Commit();
-                            }
-                            Console.WriteLine("Pokemon evolution data initialized successfully!");
-                        }
+                        // Seed the database with PokemonMaster data
+                        db.SeedPokemonMasters(pokemonMasters);
+                        Console.WriteLine("Database initialized with Pokemon evolution data.");
                     }
                 }
             }
@@ -827,30 +755,20 @@ namespace PokemonPocket
             }
         }
 
-        // Method to load Pokemon from the database
         private static void LoadPokemonFromDatabase(List<Pokemon> pokemonPocket)
         {
             try
             {
-                using (var db = new PokemonDbContext())
+                using (var db = new PokemonDbContext(DatabasePath))
                 {
-                    // Clear current pocket
+                    // Clear the current pocket
                     pokemonPocket.Clear();
-
-                    // Fetch all Pokemon from database
-                    var pokemonEntities = db.Pokemons.ToList();
-
-                    if (pokemonEntities.Count == 0)
-                    {
-                        Console.WriteLine("No Pokemon found in database.");
-                        return;
-                    }
-
-                    // Convert database entities to Pokemon objects
-                    foreach (var entity in pokemonEntities)
+                    
+                    // Create Pokemon objects from entities
+                    foreach (var entity in db.Pokemons)
                     {
                         Pokemon pokemon = null;
-
+                        
                         switch (entity.Type)
                         {
                             case "Pikachu":
@@ -872,13 +790,13 @@ namespace PokemonPocket
                                 pokemon = new Charmeleon(entity.Name, entity.HP, entity.Exp);
                                 break;
                         }
-
+                        
                         if (pokemon != null)
                         {
                             pokemonPocket.Add(pokemon);
                         }
                     }
-
+                    
                     Console.WriteLine($"Successfully loaded {pokemonPocket.Count} Pokemon from database!");
                 }
             }
@@ -888,20 +806,19 @@ namespace PokemonPocket
             }
         }
 
-        // Method to save Pokemon to the database
         private static void SavePokemonToDatabase(List<Pokemon> pokemonPocket)
         {
             try
             {
-                using (var db = new PokemonDbContext())
+                using (var db = new PokemonDbContext(DatabasePath))
                 {
-                    // Clear existing Pokemon data
-                    db.Pokemons.RemoveRange(db.Pokemons);
-
-                    // Add all current Pokemon to database
+                    // Clear existing Pokemon
+                    db.Pokemons.Clear();
+                    
+                    // Add current Pokemon to context
                     foreach (var pokemon in pokemonPocket)
                     {
-                        db.Pokemons.Add(new PokemonEntity
+                        db.Add(new PokemonEntity
                         {
                             Name = pokemon.Name,
                             Type = pokemon.GetType().Name,
@@ -911,9 +828,10 @@ namespace PokemonPocket
                             SkillDamage = pokemon.SkillDamage
                         });
                     }
-
-                    // Save changes
+                    
+                    // Save changes to database
                     db.SaveChanges();
+                    
                     Console.WriteLine($"Successfully saved {pokemonPocket.Count} Pokemon to database!");
                 }
             }
