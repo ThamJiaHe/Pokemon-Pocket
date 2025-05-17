@@ -3,34 +3,43 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading;
+using System.IO;
+using System.Data;
+using Microsoft.Data.Sqlite;
+using PokemonPocket.Database;
+
 
 namespace PokemonPocket
 {
     class Program
     {
+        private static readonly string SaveFilePath = "pokemon_save.csv";
+        private static readonly string DatabaseDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Database");
+        private static readonly string DatabasePath = Path.Combine(DatabaseDirectory, "pokemon_pocket.db");
+
         static void Main(string[] args)
         {
             // This list holds the evolution information for Pokémon
-            // Each entry contains the Pokémon name, the number of Pokémon needed to evolve, and the evolved form
             List<PokemonMaster> pokemonMasters = new List<PokemonMaster>(){
-            new PokemonMaster("Pikachu", 2, "Raichu"),
-            new PokemonMaster("Eevee", 3, "Flareon"),
-            new PokemonMaster("Charmander", 1, "Charmeleon")
+                new PokemonMaster("Pikachu", 2, "Raichu"),
+                new PokemonMaster("Eevee", 3, "Flareon"),
+                new PokemonMaster("Charmander", 1, "Charmeleon")
             };
+            
+            // Initialize the database with evolution data
+            InitializeDatabase(pokemonMasters);
 
-            //Use "Environment.Exit(0);" if you want to implement an exit of the console program
-
-            //Start your assignment 1 requirements below.
-            //Create a list to hold Pokemon objects
+            // Create a list to hold Pokemon objects
             List<Pokemon> pokemonPocket = new List<Pokemon>();
-
+            
+            // Try to load Pokemon from database when starting
+            LoadPokemonFromDatabase(pokemonPocket);
+            
             // Variable to hold the user's choice
             char choice;
             // Create a boolean variable to control the loop
-            // Set to true to start the loop or continue the program
-            // Set to false to exit the loop or quit the program
             bool running = true;
-
+            
             // Main loop to display the menu and handle user input
             while (running)
             {
@@ -45,7 +54,9 @@ namespace PokemonPocket
                 Console.WriteLine("(5). Battle Arena");
                 Console.WriteLine("(6). Training Center");
                 Console.WriteLine("(7). Save & Load");
-                Console.Write("Please only enter [1,2,3,4,5,6,7] or Q to quit: ");
+                Console.WriteLine("(8). Load Pokemon from Database");
+                Console.WriteLine("(9). Save Pokemon to Database");
+                Console.Write("Please only enter [1,2,3,4,5,6,7,8,9] or Q to quit: ");
 
                 // Read user input with validation
                 try
@@ -74,14 +85,37 @@ namespace PokemonPocket
                         case '4':
                             EvolvePokemon(pokemonPocket, pokemonMasters);
                             break;
+                        // Option 5: Battle Arena
+                        case '5':
+                            BattleArena();
+                            break;
+                        // Option 6: Training Center
+                        case '6':
+                            TrainPokemon(pokemonPocket);
+                            break;
+                        // Option 7: Save & Load
+                        case '7':
+                            SaveLoadMenu(pokemonPocket);
+                            break;
+                        // Option 8: Load Pokemon from Database
+                        case '8':
+                            LoadPokemonFromDatabase(pokemonPocket);
+                            break;
+                        // Option 9: Save Pokemon to Database
+                        case '9':
+                            SavePokemonToDatabase(pokemonPocket);
+                            break;
                         // Exit the program if the user enters 'q'Lowercase or 'Q'Uppercase
                         case 'q':
                         case 'Q':
+                            Console.WriteLine("Saving your Pokémon data before exiting...");
+                            SavePokemonToDatabase(pokemonPocket);
+                            Console.WriteLine("Thank you for using Pokémon Pocket! Goodbye!");
                             running = false;
                             break;
                         default:
-                            // Handel invalid menu selection
-                            Console.WriteLine("Invalid choice. Please enter a number between 1 and 4 or Q to quit.");
+                            // Handle invalid menu selection
+                            Console.WriteLine("Invalid choice. Please enter a number between 1 and 9 or Q to quit.");
                             break;
                     }
                 }
@@ -102,18 +136,21 @@ namespace PokemonPocket
                 // Prompt the user for Pokémon name 
                 Console.WriteLine("Enter the name of the Pokémon: ");
                 // Read the Pokémon name from the user
-                string name = Console.ReadLine(Name);
+                string name = Console.ReadLine();
 
                 // Check if the name is empty or null
-                if (string.IsNullOrWhiteSpace())
+                if (string.IsNullOrWhiteSpace(name))
                 {
-                    Console.WriteLine("Name caannot be empty.");
+                    Console.WriteLine("Name cannot be empty.");
                     return;
                 }
                 // Trim the input to remove leading and trailing whitespaces from the name
-                string Name = input.Trim();
+                name = name.Trim();
 
-                // validate the name corresponds to a valid Pokémon type
+                // Determine the Pokémon type
+                string pokemonType = DeterminePokemonType(name);
+
+                // Validate the name corresponds to a valid Pokémon type
                 if (pokemonType == null)
                 {
                     Console.WriteLine("Invalid Pokémon type. Please enter a valid type.");
@@ -124,9 +161,6 @@ namespace PokemonPocket
                 Console.WriteLine("Enter Pokémon's HP: ");
 
                 // Validate the input to ensure it's a number
-                // Use int.TryParse to safely parse the input
-                // If parsing fails, prompt the user for a Postive number
-                // If parsing succeeds, assign the value to the hp variable
                 if (!int.TryParse(Console.ReadLine(), out int hp))
                 {
                     Console.WriteLine("Invalid HP. Please enter a valid number.");
@@ -135,7 +169,7 @@ namespace PokemonPocket
 
                 // Prompt the user for Pokémon EXP
                 Console.WriteLine("Enter Pokémon's EXP: ");
-                if (!int.TryParse(Console.ReadLine(), out int hp) || hp <= 0)
+                if (!int.TryParse(Console.ReadLine(), out int exp) || exp <= 0)
                 {
                     Console.WriteLine("Invalid EXP. Please enter a positive number for EXP.");
                     return;
@@ -146,13 +180,13 @@ namespace PokemonPocket
                 // Create a new Pokémon object based on the type
                 switch (pokemonType.ToLower())
                 {
-                    case "Pikachu":
+                    case "pikachu":
                         newPokemon = new Pikachu(name, hp, exp);
                         break;
-                    case "Eevee":
+                    case "eevee":
                         newPokemon = new Eevee(name, hp, exp);
                         break;
-                    case "Charmander":
+                    case "charmander":
                         newPokemon = new Charmander(name, hp, exp);
                         break;
                 }
@@ -165,6 +199,7 @@ namespace PokemonPocket
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
         }
+
         private static string DeterminePokemonType(string name)
         {
             string lowerName = name.ToLower();
@@ -180,6 +215,18 @@ namespace PokemonPocket
             else if (lowerName.Contains("charmander"))
             {
                 return "Charmander";
+            }
+            else if (lowerName.Contains("raichu"))
+            {
+                return "Raichu";
+            }
+            else if (lowerName.Contains("flareon"))
+            {
+                return "Flareon";
+            }
+            else if (lowerName.Contains("charmeleon"))
+            {
+                return "Charmeleon";
             }
             else
             {
@@ -207,23 +254,24 @@ namespace PokemonPocket
                 Console.WriteLine("----------------------");
             }
         }
-        private static void CheckEvolution(List<Pokemon> pokemonPocket, List<PokemonMaster)
+
+        private static void CheckEvolution(List<Pokemon> pokemonPocket, List<PokemonMaster> pokemonMasters)
         {
-            if (pokemonPocket.Count == 9)
+            if (pokemonPocket.Count == 0)
             {
                 Console.WriteLine("No Pokémon in your pocket.");
                 return;
             }
 
             bool canEvolve = false;
-            foreach (PokemonMaster master in PokemonMasters)
+            foreach (PokemonMaster master in pokemonMasters)
             {
-                int count = pokemonPocket.Count(p => p.GetType() == master.Name);
+                int count = pokemonPocket.Count(p => p.GetType().Name == master.Name);
 
                 if (count >= master.NoToEvolve)
                 {
                     Console.WriteLine($"{count} {master.Name} --> {master.NoToEvolve} {master.EvolveTo}");
-                    canEvolveAny = true;
+                    canEvolve = true;
                 }
             }
             if (!canEvolve)
@@ -231,6 +279,7 @@ namespace PokemonPocket
                 Console.WriteLine("You cannot evolve any Pokémon as you do not have enough EXP.");
             }
         }
+
         private static void EvolvePokemon(List<Pokemon> pokemonPocket, List<PokemonMaster> pokemonMasters)
         {
             if (pokemonPocket.Count == 0)
@@ -281,7 +330,7 @@ namespace PokemonPocket
                 }
             }
 
-            // IF no Pokemon were evolved, inform the user
+            // If no Pokemon were evolved, inform the user
             if (!anyEvolved)
             {
                 Console.WriteLine("You don't have enough Pokemon to evolve.");
@@ -323,14 +372,14 @@ namespace PokemonPocket
             }
 
             // Get the selected Pokémon
-            Pokemon pokemon1 = pokemonPocket[choice1 = 1];
-            Pokemon pokemon2 = PokemonPocket[choice1 = 2];
+            Pokemon pokemon1 = pokemonPocket[choice1 - 1];
+            Pokemon pokemon2 = pokemonPocket[choice2 - 1];
 
-            // Store orginal HP values
+            // Store original HP values
             int originalHP1 = pokemon1.HP;
             int originalHP2 = pokemon2.HP;
 
-            // Battel animation and setup
+            // Battle animation and setup
             Console.Clear();
             Console.WriteLine($"\n === Battle Start! {pokemon1.Name} VS {pokemon2.Name} ===");
 
@@ -345,7 +394,7 @@ namespace PokemonPocket
             Thread.Sleep(800);
             Console.WriteLine("Battle Start!\n");
 
-            // Battel rounds (maximum 3 rounds)
+            // Battle rounds (maximum 3 rounds)
             for (int round = 1; round <= 3; round++)
             {
                 Console.WriteLine($"--- Round {round} ---");
@@ -406,7 +455,7 @@ namespace PokemonPocket
                 }
                 else
                 {
-                    Console.WriteLine("\nThe battel end with a draw!");
+                    Console.WriteLine("\nThe battle ends with a draw!");
                     AwardExperience(pokemon1, 5);
                     AwardExperience(pokemon2, 5);
                 }
@@ -416,14 +465,14 @@ namespace PokemonPocket
             pokemon1.HP = originalHP1;
             pokemon2.HP = originalHP2;
 
-            Console.WriteLine("\nBattel completed! HP has been restored.");
+            Console.WriteLine("\nBattle completed! HP has been restored.");
         }
 
-        // Helper method for battel experience
-        private static void AwardExperience(Pokemon pokemon, int exp)
+        // Helper method for battle experience
+        private static void AwardExperience(Pokemon pokemon, int expAmount)
         {
             pokemon.Exp += expAmount;
-            Console.WriteLine($"{pokemon.Name} gained {exp} EXP!");
+            Console.WriteLine($"{pokemon.Name} gained {expAmount} EXP!");
         }
 
         // Create feature for training center
@@ -529,23 +578,31 @@ namespace PokemonPocket
         private static void SaveLoadMenu(List<Pokemon> pokemonPocket)
         {
             Console.WriteLine("\n=== Save/Load System ===");
-            Console.WriteLine("1. Save current Pokemon data");
-            Console.WriteLine("2. Load saved Pokemon data");
+            Console.WriteLine("1. Save Pokemon to database");
+            Console.WriteLine("2. Load Pokemon from database");
+            Console.WriteLine("3. Export Pokemon to file");
+            Console.WriteLine("4. Import Pokemon from file");
             Console.Write("Choose an option: ");
-
+            
             if (!int.TryParse(Console.ReadLine(), out int choice) ||
-                choice < 1 || choice > 2)
+                choice < 1 || choice > 4)
             {
                 Console.WriteLine("Invalid option.");
                 return;
             }
-
+            
             switch (choice)
             {
-                case 1:
+                case 1: // Save to database
+                    SavePokemonToDatabase(pokemonPocket);
+                    break;
+                case 2: // Load from database
+                    LoadPokemonFromDatabase(pokemonPocket);
+                    break;
+                case 3: // Export to file
                     SavePokemonData(pokemonPocket);
                     break;
-                case 2:
+                case 4: // Import from file
                     LoadPokemonData(pokemonPocket);
                     break;
             }
@@ -648,6 +705,7 @@ namespace PokemonPocket
             {
                 Console.WriteLine($"Error loading data: {ex.Message}");
             }
+        }
 
         // Evolution Animation
         private static void ShowEvolutionAnimation()
@@ -675,26 +733,195 @@ namespace PokemonPocket
             Thread.Sleep(1000);
         }
 
-        // Determine Pokémon type based on user input
-        private static string DeterminePokemonType(string name)
+        // Method to initialize the database
+        private static void InitializeDatabase(List<PokemonMaster> pokemonMasters)
         {
-            string lowerName = name.ToLower();
-            
-            if (lowerName.Contains("pikachu"))
-                return "Pikachu";
-            else if (lowerName.Contains("eevee"))
-                return "Eevee";
-            else if (lowerName.Contains("charmander"))
-                return "Charmander";
-            else if (lowerName.Contains("raichu"))
-                return "Raichu";
-            else if (lowerName.Contains("flareon"))
-                return "Flareon";
-            else if (lowerName.Contains("charmeleon"))
-                return "Charmeleon";
-            
-            return null;
-        }        
+            try
+            {
+                // Create the Database directory if it doesn't exist
+                Directory.CreateDirectory(DatabaseDirectory);
+                
+                // Create connection string
+                string connectionString = $"Data Source={DatabasePath}";
+                
+                using (var connection = new SqliteConnection(connectionString))
+                {
+                    connection.Open();
+                    
+                    // Create PokemonMasters table
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = @"
+                            CREATE TABLE IF NOT EXISTS PokemonMasters (
+                                Id INTEGER PRIMARY KEY,
+                                Name TEXT NOT NULL,
+                                NoToEvolve INTEGER NOT NULL,
+                                EvolveTo TEXT NOT NULL
+                            )";
+                        command.ExecuteNonQuery();
+                    }
+                    
+                    // Create Pokemons table
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = @"
+                            CREATE TABLE IF NOT EXISTS Pokemons (
+                                Id INTEGER PRIMARY KEY,
+                                Name TEXT NOT NULL,
+                                Type TEXT NOT NULL,
+                                HP INTEGER NOT NULL,
+                                Exp INTEGER NOT NULL,
+                                Skill TEXT NOT NULL,
+                                SkillDamage INTEGER NOT NULL
+                            )";
+                        command.ExecuteNonQuery();
+                    }
+                    
+                    // Check if PokemonMasters has data
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = "SELECT COUNT(*) FROM PokemonMasters";
+                        long count = (long)command.ExecuteScalar();
+                        
+                        // If no data exists, seed the table
+                        if (count == 0)
+                        {
+                            using (var transaction = connection.BeginTransaction())
+                            {
+                                using (var insertCommand = connection.CreateCommand())
+                                {
+                                    insertCommand.CommandText = "INSERT INTO PokemonMasters (Name, NoToEvolve, EvolveTo) VALUES (@Name, @NoToEvolve, @EvolveTo)";
+                                    
+                                    // Parameters need to be recreated for each execution
+                                    var nameParam = insertCommand.CreateParameter();
+                                    nameParam.ParameterName = "@Name";
+                                    insertCommand.Parameters.Add(nameParam);
+                                    
+                                    var noToEvolveParam = insertCommand.CreateParameter();
+                                    noToEvolveParam.ParameterName = "@NoToEvolve";
+                                    insertCommand.Parameters.Add(noToEvolveParam);
+                                    
+                                    var evolveToParam = insertCommand.CreateParameter();
+                                    evolveToParam.ParameterName = "@EvolveTo";
+                                    insertCommand.Parameters.Add(evolveToParam);
+                                    
+                                    // Insert each Pokemon master
+                                    foreach (var master in pokemonMasters)
+                                    {
+                                        nameParam.Value = master.Name;
+                                        noToEvolveParam.Value = master.NoToEvolve;
+                                        evolveToParam.Value = master.EvolveTo;
+                                        insertCommand.ExecuteNonQuery();
+                                    }
+                                }
+                                transaction.Commit();
+                            }
+                            Console.WriteLine("Pokemon evolution data initialized successfully!");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Database initialization error: {ex.Message}");
+            }
+        }
+
+        // Method to load Pokemon from the database
+        private static void LoadPokemonFromDatabase(List<Pokemon> pokemonPocket)
+        {
+            try
+            {
+                using (var db = new PokemonDbContext())
+                {
+                    // Clear current pocket
+                    pokemonPocket.Clear();
+
+                    // Fetch all Pokemon from database
+                    var pokemonEntities = db.Pokemons.ToList();
+
+                    if (pokemonEntities.Count == 0)
+                    {
+                        Console.WriteLine("No Pokemon found in database.");
+                        return;
+                    }
+
+                    // Convert database entities to Pokemon objects
+                    foreach (var entity in pokemonEntities)
+                    {
+                        Pokemon pokemon = null;
+
+                        switch (entity.Type)
+                        {
+                            case "Pikachu":
+                                pokemon = new Pikachu(entity.Name, entity.HP, entity.Exp);
+                                break;
+                            case "Eevee":
+                                pokemon = new Eevee(entity.Name, entity.HP, entity.Exp);
+                                break;
+                            case "Charmander":
+                                pokemon = new Charmander(entity.Name, entity.HP, entity.Exp);
+                                break;
+                            case "Raichu":
+                                pokemon = new Raichu(entity.Name, entity.HP, entity.Exp);
+                                break;
+                            case "Flareon":
+                                pokemon = new Flareon(entity.Name, entity.HP, entity.Exp);
+                                break;
+                            case "Charmeleon":
+                                pokemon = new Charmeleon(entity.Name, entity.HP, entity.Exp);
+                                break;
+                        }
+
+                        if (pokemon != null)
+                        {
+                            pokemonPocket.Add(pokemon);
+                        }
+                    }
+
+                    Console.WriteLine($"Successfully loaded {pokemonPocket.Count} Pokemon from database!");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading Pokemon from database: {ex.Message}");
+            }
+        }
+
+        // Method to save Pokemon to the database
+        private static void SavePokemonToDatabase(List<Pokemon> pokemonPocket)
+        {
+            try
+            {
+                using (var db = new PokemonDbContext())
+                {
+                    // Clear existing Pokemon data
+                    db.Pokemons.RemoveRange(db.Pokemons);
+
+                    // Add all current Pokemon to database
+                    foreach (var pokemon in pokemonPocket)
+                    {
+                        db.Pokemons.Add(new PokemonEntity
+                        {
+                            Name = pokemon.Name,
+                            Type = pokemon.GetType().Name,
+                            HP = pokemon.HP,
+                            Exp = pokemon.Exp,
+                            Skill = pokemon.Skill,
+                            SkillDamage = pokemon.SkillDamage
+                        });
+                    }
+
+                    // Save changes
+                    db.SaveChanges();
+                    Console.WriteLine($"Successfully saved {pokemonPocket.Count} Pokemon to database!");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving Pokemon to database: {ex.Message}");
+            }
+        }
     }
 }
 
