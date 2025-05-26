@@ -7,6 +7,10 @@ using System.IO;
 using System.Data;
 using Microsoft.Data.Sqlite;
 using PokemonPocket.Database;
+// Author: THAM JIA HE (244548T)
+// Date: 2025-05-10
+// Copyright (c) 2025 THAM JIA HE. All rights reserved.
+
 
 
 namespace PokemonPocket
@@ -25,21 +29,43 @@ namespace PokemonPocket
                 new PokemonMaster("Eevee", 3, "Flareon"),
                 new PokemonMaster("Charmander", 1, "Charmeleon")
             };
-            
+
             // Initialize the database with evolution data
             InitializeDatabase(pokemonMasters);
 
             // Create a list to hold Pokemon objects
             List<Pokemon> pokemonPocket = new List<Pokemon>();
-            
+
             // Try to load Pokemon from database when starting
             LoadPokemonFromDatabase(pokemonPocket);
-            
+
+            // If there are no Pokemon in the database, add starter Pokemon
+            if (pokemonPocket.Count == 0)
+            {
+                Console.WriteLine("Adding starter Pokémon to your pocket...");
+                pokemonPocket.Add(new Pikachu("Pikachu", 100, 10));
+                pokemonPocket.Add(new Eevee("Eevee", 90, 8));
+                pokemonPocket.Add(new Charmander("Charmander", 80, 5));
+                Console.WriteLine("3 starter Pokémon have been added to your pocket!");
+                
+                // Save the starter Pokemon to database
+                try {
+                    SavePokemonToDatabase(pokemonPocket);
+                }
+                catch (Exception ex) {
+                    Console.WriteLine($"Couldn't save starter Pokémon: {ex.Message}");
+                }
+                
+                Console.WriteLine("Press any key to continue...");
+                Console.ReadKey(true);
+                Console.Clear();
+            }
+
             // Variable to hold the user's choice
             char choice;
             // Create a boolean variable to control the loop
             bool running = true;
-            
+
             // Main loop to display the menu and handle user input
             while (running)
             {
@@ -72,46 +98,63 @@ namespace PokemonPocket
                         // Option 1: Add a new Pokémon to the pocket
                         case '1':
                             AddPokemon(pokemonPocket);
+                            PauseBeforeReturningToMenu(); // Add this line
                             break;
                         // Option 2: List all Pokémon in the pocket
                         case '2':
                             ListPokemon(pokemonPocket);
+                            PauseBeforeReturningToMenu(); // Add this line
                             break;
                         // Option 3: Check if I can evolve Pokémon
                         case '3':
                             CheckEvolution(pokemonPocket, pokemonMasters);
+                            PauseBeforeReturningToMenu(); // Add this line
                             break;
                         // Option 4: Evolve Pokémon if possible
                         case '4':
                             EvolvePokemon(pokemonPocket, pokemonMasters);
+                            PauseBeforeReturningToMenu(); // Add this line
                             break;
                         // Option 5: Battle Arena
                         case '5':
-                            BattleArena();
+                            BattleArena(pokemonPocket);
+                            PauseBeforeReturningToMenu(); // Add this line
                             break;
                         // Option 6: Training Center
                         case '6':
                             TrainPokemon(pokemonPocket);
+                            PauseBeforeReturningToMenu(); // Add this line
                             break;
                         // Option 7: Save & Load
                         case '7':
                             SaveLoadMenu(pokemonPocket);
+                            PauseBeforeReturningToMenu(); // Add this line
                             break;
                         // Option 8: Load Pokemon from Database
                         case '8':
                             LoadPokemonFromDatabase(pokemonPocket);
+                            PauseBeforeReturningToMenu(); // Add this line
                             break;
                         // Option 9: Save Pokemon to Database
                         case '9':
                             SavePokemonToDatabase(pokemonPocket);
+                            PauseBeforeReturningToMenu(); // Add this line
                             break;
                         // Exit the program if the user enters 'q'Lowercase or 'Q'Uppercase
                         case 'q':
                         case 'Q':
                             Console.WriteLine("Saving your Pokémon data before exiting...");
-                            SavePokemonToDatabase(pokemonPocket);
+                            try {
+                                // Make sure the directory exists before saving
+                                Directory.CreateDirectory(DatabaseDirectory);
+                                SavePokemonToDatabase(pokemonPocket);
+                            }
+                            catch (Exception ex) {
+                                Console.WriteLine($"Couldn't save data: {ex.Message}");
+                            }
                             Console.WriteLine("Thank you for using Pokémon Pocket! Goodbye!");
                             running = false;
+                            Environment.Exit(0); // Ensure clean exit
                             break;
                         default:
                             // Handle invalid menu selection
@@ -144,32 +187,40 @@ namespace PokemonPocket
                     Console.WriteLine("Name cannot be empty.");
                     return;
                 }
+                
                 // Trim the input to remove leading and trailing whitespaces from the name
                 name = name.Trim();
 
-                // Determine the Pokémon type
-                string pokemonType = DeterminePokemonType(name);
-
-                // Validate the name corresponds to a valid Pokémon type
-                if (pokemonType == null)
+                // Prompt for pokemon type explicitly instead of determining from name
+                Console.WriteLine("Enter Pokémon type (Pikachu, Eevee, or Charmander):");
+                string pokemonType = Console.ReadLine()?.Trim();
+                
+                // Validate the type is one of the allowed types
+                if (string.IsNullOrWhiteSpace(pokemonType) || 
+                    (pokemonType.ToLower() != "pikachu" && 
+                     pokemonType.ToLower() != "eevee" && 
+                     pokemonType.ToLower() != "charmander"))
                 {
-                    Console.WriteLine("Invalid Pokémon type. Please enter a valid type.");
+                    Console.WriteLine("Invalid Pokémon type. Please enter Pikachu, Eevee, or Charmander.");
                     return;
                 }
 
                 // Prompt the user for Pokémon HP
                 Console.WriteLine("Enter Pokémon's HP: ");
+                string hpInput = Console.ReadLine();
 
                 // Validate the input to ensure it's a number
-                if (!int.TryParse(Console.ReadLine(), out int hp))
+                if (!int.TryParse(hpInput, out int hp) || hp <= 0)
                 {
-                    Console.WriteLine("Invalid HP. Please enter a valid number.");
+                    Console.WriteLine("Invalid HP. Please enter a positive number.");
                     return;
                 }
 
                 // Prompt the user for Pokémon EXP
                 Console.WriteLine("Enter Pokémon's EXP: ");
-                if (!int.TryParse(Console.ReadLine(), out int exp) || exp <= 0)
+                string expInput = Console.ReadLine();
+                
+                if (!int.TryParse(expInput, out int exp) || exp <= 0)
                 {
                     Console.WriteLine("Invalid EXP. Please enter a positive number for EXP.");
                     return;
@@ -337,7 +388,7 @@ namespace PokemonPocket
             }
         }
 
-        private static void BattleArena()
+        private static void BattleArena(List<Pokemon> pokemonPocket)
         {
             Console.WriteLine("Welcome to the Battle Arena!");
 
@@ -583,14 +634,14 @@ namespace PokemonPocket
             Console.WriteLine("3. Export Pokemon to file");
             Console.WriteLine("4. Import Pokemon from file");
             Console.Write("Choose an option: ");
-            
+
             if (!int.TryParse(Console.ReadLine(), out int choice) ||
                 choice < 1 || choice > 4)
             {
                 Console.WriteLine("Invalid option.");
                 return;
             }
-            
+
             switch (choice)
             {
                 case 1: // Save to database
@@ -606,6 +657,7 @@ namespace PokemonPocket
                     LoadPokemonData(pokemonPocket);
                     break;
             }
+            // No need for PauseBeforeReturningToMenu() here since we call it after SaveLoadMenu in the main menu
         }
 
         private static void SavePokemonData(List<Pokemon> pokemonPocket)
@@ -738,6 +790,9 @@ namespace PokemonPocket
         {
             try
             {
+                // Make sure the database directory exists
+                Directory.CreateDirectory(DatabaseDirectory);
+                
                 using (var db = new PokemonDbContext(DatabasePath))
                 {
                     // Check if database has been seeded already
@@ -763,12 +818,12 @@ namespace PokemonPocket
                 {
                     // Clear the current pocket
                     pokemonPocket.Clear();
-                    
+
                     // Create Pokemon objects from entities
                     foreach (var entity in db.Pokemons)
                     {
                         Pokemon pokemon = null;
-                        
+
                         switch (entity.Type)
                         {
                             case "Pikachu":
@@ -790,13 +845,13 @@ namespace PokemonPocket
                                 pokemon = new Charmeleon(entity.Name, entity.HP, entity.Exp);
                                 break;
                         }
-                        
+
                         if (pokemon != null)
                         {
                             pokemonPocket.Add(pokemon);
                         }
                     }
-                    
+
                     Console.WriteLine($"Successfully loaded {pokemonPocket.Count} Pokemon from database!");
                 }
             }
@@ -814,7 +869,7 @@ namespace PokemonPocket
                 {
                     // Clear existing Pokemon
                     db.Pokemons.Clear();
-                    
+
                     // Add current Pokemon to context
                     foreach (var pokemon in pokemonPocket)
                     {
@@ -828,10 +883,10 @@ namespace PokemonPocket
                             SkillDamage = pokemon.SkillDamage
                         });
                     }
-                    
+
                     // Save changes to database
                     db.SaveChanges();
-                    
+
                     Console.WriteLine($"Successfully saved {pokemonPocket.Count} Pokemon to database!");
                 }
             }
@@ -839,6 +894,13 @@ namespace PokemonPocket
             {
                 Console.WriteLine($"Error saving Pokemon to database: {ex.Message}");
             }
+        }
+
+        private static void PauseBeforeReturningToMenu()
+        {
+            Console.WriteLine("\nPress any key to return to the main menu...");
+            Console.ReadKey(true);
+            Console.Clear(); // Optional: clear the screen for a cleaner interface
         }
     }
 }

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PokemonPocket")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d523c15d52ae89b9abcf88109913cff6a345132a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fbc0088d9ca45d60ee9b4ebe872da3578b0cd138")]
 [assembly: System.Reflection.AssemblyProductAttribute("PokemonPocket")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PokemonPocket")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
