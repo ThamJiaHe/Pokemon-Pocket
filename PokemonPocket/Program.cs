@@ -39,28 +39,6 @@ namespace PokemonPocket
             // Try to load Pokemon from database when starting
             LoadPokemonFromDatabase(pokemonPocket);
 
-            // If there are no Pokemon in the database, add starter Pokemon
-            if (pokemonPocket.Count == 0)
-            {
-                Console.WriteLine("Adding starter Pokémon to your pocket...");
-                pokemonPocket.Add(new Pikachu("Pikachu", 100, 10));
-                pokemonPocket.Add(new Eevee("Eevee", 90, 8));
-                pokemonPocket.Add(new Charmander("Charmander", 80, 5));
-                Console.WriteLine("3 starter Pokémon have been added to your pocket!");
-                
-                // Save the starter Pokemon to database
-                try {
-                    SavePokemonToDatabase(pokemonPocket);
-                }
-                catch (Exception ex) {
-                    Console.WriteLine($"Couldn't save starter Pokémon: {ex.Message}");
-                }
-                
-                Console.WriteLine("Press any key to continue...");
-                Console.ReadKey(true);
-                Console.Clear();
-            }
-
             // Variable to hold the user's choice
             char choice;
             // Create a boolean variable to control the loop
@@ -670,7 +648,7 @@ namespace PokemonPocket
                 using (StreamWriter writer = new StreamWriter(SaveFilePath))
                 {
                     // Write header
-                    writer.WriteLine("Type,Name,HP,Exp");
+                    writer.WriteLine("Name,Type,HP,Exp");
 
                     // Write each Pokemon's data
                     foreach (Pokemon pokemon in pokemonPocket)
