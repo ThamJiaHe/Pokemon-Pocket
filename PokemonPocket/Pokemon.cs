@@ -30,6 +30,8 @@ namespace PokemonPocket
         public string Skill { get; protected set; }
         public int SkillDamage { get; protected set; }
 
+        public bool IsDefending { get; set; }
+
         public Pokemon(string name, int hp, int exp)
         {
             Name = name;

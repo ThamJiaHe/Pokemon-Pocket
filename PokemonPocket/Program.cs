@@ -58,9 +58,7 @@ namespace PokemonPocket
                 Console.WriteLine("(5). Battle Arena");
                 Console.WriteLine("(6). Training Center");
                 Console.WriteLine("(7). Save & Load");
-                Console.WriteLine("(8). Load Pokemon from Database");
-                Console.WriteLine("(9). Save Pokemon to Database");
-                Console.Write("Please only enter [1,2,3,4,5,6,7,8,9] or Q to quit: ");
+                Console.Write("Please only enter [1,2,3,4,5,6,7] or Q to quit: ");
 
                 // Read user input with validation
                 try
@@ -108,26 +106,18 @@ namespace PokemonPocket
                             SaveLoadMenu(pokemonPocket);
                             PauseBeforeReturningToMenu(); // Add this line
                             break;
-                        // Option 8: Load Pokemon from Database
-                        case '8':
-                            LoadPokemonFromDatabase(pokemonPocket);
-                            PauseBeforeReturningToMenu(); // Add this line
-                            break;
-                        // Option 9: Save Pokemon to Database
-                        case '9':
-                            SavePokemonToDatabase(pokemonPocket);
-                            PauseBeforeReturningToMenu(); // Add this line
-                            break;
                         // Exit the program if the user enters 'q'Lowercase or 'Q'Uppercase
                         case 'q':
                         case 'Q':
                             Console.WriteLine("Saving your Pokémon data before exiting...");
-                            try {
+                            try
+                            {
                                 // Make sure the directory exists before saving
                                 Directory.CreateDirectory(DatabaseDirectory);
                                 SavePokemonToDatabase(pokemonPocket);
                             }
-                            catch (Exception ex) {
+                            catch (Exception ex)
+                            {
                                 Console.WriteLine($"Couldn't save data: {ex.Message}");
                             }
                             Console.WriteLine("Thank you for using Pokémon Pocket! Goodbye!");
@@ -165,18 +155,18 @@ namespace PokemonPocket
                     Console.WriteLine("Name cannot be empty.");
                     return;
                 }
-                
+
                 // Trim the input to remove leading and trailing whitespaces from the name
                 name = name.Trim();
 
                 // Prompt for pokemon type explicitly instead of determining from name
                 Console.WriteLine("Enter Pokémon type (Pikachu, Eevee, or Charmander):");
                 string pokemonType = Console.ReadLine()?.Trim();
-                
+
                 // Validate the type is one of the allowed types
-                if (string.IsNullOrWhiteSpace(pokemonType) || 
-                    (pokemonType.ToLower() != "pikachu" && 
-                     pokemonType.ToLower() != "eevee" && 
+                if (string.IsNullOrWhiteSpace(pokemonType) ||
+                    (pokemonType.ToLower() != "pikachu" &&
+                     pokemonType.ToLower() != "eevee" &&
                      pokemonType.ToLower() != "charmander"))
                 {
                     Console.WriteLine("Invalid Pokémon type. Please enter Pikachu, Eevee, or Charmander.");
@@ -197,7 +187,7 @@ namespace PokemonPocket
                 // Prompt the user for Pokémon EXP
                 Console.WriteLine("Enter Pokémon's EXP: ");
                 string expInput = Console.ReadLine();
-                
+
                 if (!int.TryParse(expInput, out int exp) || exp <= 0)
                 {
                     Console.WriteLine("Invalid EXP. Please enter a positive number for EXP.");
@@ -221,10 +211,17 @@ namespace PokemonPocket
                 }
 
                 pokemonPocket.Add(newPokemon);
-                Console.WriteLine($"{name} was successfully added to your Pokémon Pocket!");
+                // Set text color to green for success messages
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Pokemon successfully added!");
+                Console.ResetColor(); // Reset to default color
             }
             catch (Exception ex)
             {
+                // Set text color to red for error messages
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Error: Invalid selection");
+                Console.ResetColor();
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
         }
@@ -327,9 +324,26 @@ namespace PokemonPocket
 
                 if (count >= master.NoToEvolve)
                 {
+                    // Add dramatic evolution animation
+                    Console.WriteLine($"\nPreparing to evolve {master.Name}...");
+                    Thread.Sleep(1000);
+                    
                     // Sort by lowest exp first to evolve those
                     eligiblePokemon = eligiblePokemon.OrderBy(p => p.Exp).ToList();
 
+                    // Show Pokemon stats before evolution
+                    Pokemon toEvolve = eligiblePokemon[0];
+                    Console.WriteLine($"\nBefore evolution:");
+                    Console.WriteLine($"Name: {toEvolve.Name}");
+                    Console.WriteLine($"Type: {toEvolve.GetType().Name}");
+                    Console.WriteLine($"HP: {toEvolve.HP}");
+                    Console.WriteLine($"Exp: {toEvolve.Exp}");
+                    Console.WriteLine($"Skill: {toEvolve.Skill} (Power: {toEvolve.SkillDamage})");
+                    
+                    // Calculate stat improvements (higher HP and retained EXP)
+                    int newHP = toEvolve.HP + 50; // Evolution boosts HP
+                    int retainedExp = toEvolve.Exp;
+                    
                     // Remove the Pokemon that will be evolved
                     for (int i = 0; i < master.NoToEvolve; i++)
                     {
@@ -337,24 +351,36 @@ namespace PokemonPocket
                         pokemonPocket.Remove(toRemove);
                     }
 
+                    // Show evolution animation
+                    ShowEvolutionAnimation();
+                    
                     // Create the evolved Pokemon
                     Pokemon evolvedPokemon = null;
-
+                    
                     switch (master.EvolveTo)
                     {
                         case "Raichu":
-                            evolvedPokemon = new Raichu(master.EvolveTo, 100, 0);
+                            evolvedPokemon = new Raichu(toEvolve.Name, newHP, retainedExp);
                             break;
                         case "Flareon":
-                            evolvedPokemon = new Flareon(master.EvolveTo, 100, 0);
+                            evolvedPokemon = new Flareon(toEvolve.Name, newHP, retainedExp);
                             break;
                         case "Charmeleon":
-                            evolvedPokemon = new Charmeleon(master.EvolveTo, 100, 0);
+                            evolvedPokemon = new Charmeleon(toEvolve.Name, newHP, retainedExp);
                             break;
                     }
+                    
+                    // Show stats after evolution
+                    Console.WriteLine($"\nAfter evolution:");
+                    Console.WriteLine($"Name: {evolvedPokemon.Name}");
+                    Console.WriteLine($"Type: {evolvedPokemon.GetType().Name}");
+                    Console.WriteLine($"HP: {evolvedPokemon.HP}");
+                    Console.WriteLine($"Exp: {evolvedPokemon.Exp}");
+                    Console.WriteLine($"Skill: {evolvedPokemon.Skill} (Power: {evolvedPokemon.SkillDamage})");
+                    
                     // Add the evolved Pokemon to the pocket
                     pokemonPocket.Add(evolvedPokemon);
-                    Console.WriteLine($"{master.Name} evolved into {master.EvolveTo}!");
+                    Console.WriteLine($"\n{master.Name} evolved into {master.EvolveTo}!");
                     anyEvolved = true;
                 }
             }
@@ -376,33 +402,83 @@ namespace PokemonPocket
                 return;
             }
 
-            Console.WriteLine("Choose your Pokémon to battle: ");
+            // Let player choose battle mode
+            Console.WriteLine("\nBattle Mode:");
+            Console.WriteLine("1. Player vs Player");
+            Console.WriteLine("2. Player vs Computer AI");
+            Console.Write("Select mode: ");
+
+            if (!int.TryParse(Console.ReadLine(), out int modeChoice) || (modeChoice != 1 && modeChoice != 2))
+            {
+                Console.WriteLine("Invalid selection. Defaulting to Player vs Player.");
+                modeChoice = 1;
+            }
+
+            bool vsAI = (modeChoice == 2);
+
+            // List available Pokémon
+            Console.WriteLine("\nChoose your Pokémon to battle: ");
             for (int i = 0; i < pokemonPocket.Count; i++)
             {
                 Console.WriteLine($"{i + 1}. {pokemonPocket[i].Name} {pokemonPocket[i].GetType().Name}, HP: {pokemonPocket[i].HP}, EXP: {pokemonPocket[i].Exp}");
             }
 
-            Console.Write("\nSelect your first Pokémon (number): ");
-
+            // Player 1 selects Pokémon
+            Console.Write("\nPlayer 1, select your Pokémon (number): ");
             if (!int.TryParse(Console.ReadLine(), out int choice1) || choice1 < 1 || choice1 > pokemonPocket.Count)
             {
                 Console.WriteLine("Invalid selection.");
                 return;
             }
 
-            // Select second Pokemon
-            Console.Write("Select second Pokemon (number): ");
-            if (!int.TryParse(Console.ReadLine(), out int choice2) ||
-                choice2 < 1 || choice2 > pokemonPocket.Count ||
-                choice1 == choice2)
-            {
-                Console.WriteLine("Invalid selection.");
-                return;
-            }
-
-            // Get the selected Pokémon
+            // Get Player 1's Pokémon
             Pokemon pokemon1 = pokemonPocket[choice1 - 1];
-            Pokemon pokemon2 = pokemonPocket[choice2 - 1];
+
+            // Player 2 or AI selects Pokémon
+            Pokemon pokemon2;
+
+            if (!vsAI)
+            {
+                // Player 2 selects Pokémon
+                Console.Write("Player 2, select your Pokémon (number): ");
+                if (!int.TryParse(Console.ReadLine(), out int choice2) ||
+                    choice2 < 1 || choice2 > pokemonPocket.Count ||
+                    choice1 == choice2)
+                {
+                    Console.WriteLine("Invalid selection.");
+                    return;
+                }
+
+                pokemon2 = pokemonPocket[choice2 - 1];
+            }
+            else
+            {
+                // AI selects Pokémon (randomly or strategically)
+                Random random = new Random();
+                List<Pokemon> aiChoices = new List<Pokemon>();
+
+                // Exclude player's Pokémon from AI choices
+                for (int i = 0; i < pokemonPocket.Count; i++)
+                {
+                    if (i != choice1 - 1)
+                    {
+                        aiChoices.Add(pokemonPocket[i]);
+                    }
+                }
+
+                if (aiChoices.Count == 0)
+                {
+                    Console.WriteLine("No available Pokémon for the AI to choose.");
+                    return;
+                }
+
+                // AI makes a strategic choice (selects Pokémon with type advantage if possible)
+                // For simplicity, we'll just choose randomly for now
+                int aiChoice = random.Next(aiChoices.Count);
+                pokemon2 = aiChoices[aiChoice];
+
+                Console.WriteLine($"AI has chosen {pokemon2.Name} ({pokemon2.GetType().Name})!");
+            }
 
             // Store original HP values
             int originalHP1 = pokemon1.HP;
@@ -411,7 +487,6 @@ namespace PokemonPocket
             // Battle animation and setup
             Console.Clear();
             Console.WriteLine($"\n === Battle Start! {pokemon1.Name} VS {pokemon2.Name} ===");
-
             Console.WriteLine($"{pokemon1.Name} HP: {pokemon1.HP}");
             Console.WriteLine($"{pokemon2.Name} HP: {pokemon2.HP}");
 
@@ -428,34 +503,87 @@ namespace PokemonPocket
             {
                 Console.WriteLine($"--- Round {round} ---");
 
-                // Pokemon 1 attacks
-                Console.WriteLine($"{pokemon1.Name} uses {pokemon1.Skill} for {pokemon1.SkillDamage} damage!");
-                int originalHP2BeforeAttack = pokemon2.HP;
-                pokemon2.CalculateDamage(pokemon1.SkillDamage);
-                Console.WriteLine($"{pokemon2.Name} HP decreased by {originalHP2BeforeAttack - pokemon2.HP} points!  (HP: {pokemon2.HP})");
-                Thread.Sleep(1000);
+                // Player 1's turn
+                string player1Move = GetPlayerMove(pokemon1, 1);
 
-                // Check if pokemon 2 is knocked out
-                if (pokemon2.HP <= 0)
+                // Player 2 or AI's turn
+                string player2Move;
+                if (!vsAI)
                 {
-                    Console.WriteLine($"\n{pokemon2.Name} is knocked out! {pokemon1.Name} wins!");
-                    AwardExperience(pokemon1, 15);
-                    break;
+                    player2Move = GetPlayerMove(pokemon2, 2);
+                }
+                else
+                {
+                    // AI selects a move (for now, always attacks)
+                    player2Move = GetAIMove(pokemon2, pokemon1);
+                    if (player2Move == "attack")
+                        Console.WriteLine($"AI chooses to use {pokemon2.Skill}!");
+                    else
+                        Console.WriteLine($"AI chooses to defend with {pokemon2.Name}!");
                 }
 
-                // Pokemon 2 attacks
-                Console.WriteLine($"{pokemon2.Name} uses {pokemon2.Skill} for {pokemon2.SkillDamage} damage!");
-                int originalHP1BeforeAttack = pokemon1.HP;
-                pokemon1.CalculateDamage(pokemon2.SkillDamage);
-                Console.WriteLine($"{pokemon1.Name} HP decreased by {originalHP1BeforeAttack - pokemon1.HP} points!  (HP: {pokemon1.HP})");
-                Thread.Sleep(1000);
+                // Determine who goes first based on Pokémon's Exp (simulating Speed stat)
+                bool player1First = pokemon1.Exp >= pokemon2.Exp;
 
-                // Check if pokemon 1 is knocked out
-                if (pokemon1.HP <= 0)
+                if (player1First)
                 {
-                    Console.WriteLine($"\n{pokemon1.Name} is knocked out! {pokemon2.Name} wins!");
-                    AwardExperience(pokemon2, 15);
-                    break;
+                    Console.WriteLine($"{pokemon1.Name} moves first due to higher experience!");
+
+                    // Execute move and track if defending
+                    bool isDefending1 = ExecuteMove(pokemon1, pokemon2, player1Move, 1);
+                    pokemon1.IsDefending = isDefending1;
+
+                    // Check if Pokemon 2 fainted
+                    if (pokemon2.HP <= 0)
+                    {
+                        Console.WriteLine($"\n{pokemon2.Name} is knocked out! {pokemon1.Name} wins!");
+                        AwardExperience(pokemon1, 15);
+                        break;
+                    }
+
+                    // Apply defense bonus if defending
+                    if (pokemon2.IsDefending)
+                    {
+                        Console.WriteLine($"{pokemon2.Name}'s defensive stance reduces damage!");
+                        // Execute move with defense consideration
+                        ExecuteMoveWithDefense(pokemon2, pokemon1, player2Move, vsAI ? 0 : 2);
+                        pokemon2.IsDefending = false; // Reset defense status
+                    }
+                    else
+                    {
+                        ExecuteMove(pokemon2, pokemon1, player2Move, vsAI ? 0 : 2);
+                    }
+
+                    // Check if Pokemon 1 fainted
+                    if (pokemon1.HP <= 0)
+                    {
+                        Console.WriteLine($"\n{pokemon1.Name} is knocked out! {pokemon2.Name} wins!");
+                        AwardExperience(pokemon2, 15);
+                        break;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"{pokemon2.Name} moves first due to higher experience!");
+                    ExecuteMove(pokemon2, pokemon1, player2Move, vsAI ? 0 : 2); // 0 for AI
+
+                    // Check if Pokemon 1 fainted
+                    if (pokemon1.HP <= 0)
+                    {
+                        Console.WriteLine($"\n{pokemon1.Name} is knocked out! {pokemon2.Name} wins!");
+                        AwardExperience(pokemon2, 15);
+                        break;
+                    }
+
+                    ExecuteMove(pokemon1, pokemon2, player1Move, 1);
+
+                    // Check if Pokemon 2 fainted
+                    if (pokemon2.HP <= 0)
+                    {
+                        Console.WriteLine($"\n{pokemon2.Name} is knocked out! {pokemon1.Name} wins!");
+                        AwardExperience(pokemon1, 15);
+                        break;
+                    }
                 }
 
                 // Pause between rounds
@@ -474,17 +602,25 @@ namespace PokemonPocket
 
                 if (hp1Percent > hp2Percent)
                 {
+                    // When a Pokémon wins
+                    Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine($"\n{pokemon1.Name} wins by having more HP remaining!");
+                    Console.ResetColor();
                     AwardExperience(pokemon1, 10);
                 }
                 else if (hp2Percent > hp1Percent)
                 {
-                    Console.WriteLine($"\n{pokemon2.Name} wins by having more HP remaining!");
-                    AwardExperience(pokemon2, 10);
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"\n{pokemon2.Name} is knocked out! {pokemon1.Name} wins!");
+                    Console.ResetColor();
+                    AwardExperience(pokemon2, 15);
                 }
                 else
                 {
+                    // For a draw
+                    Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine("\nThe battle ends with a draw!");
+                    Console.ResetColor();
                     AwardExperience(pokemon1, 5);
                     AwardExperience(pokemon2, 5);
                 }
@@ -497,32 +633,81 @@ namespace PokemonPocket
             Console.WriteLine("\nBattle completed! HP has been restored.");
         }
 
-        // Helper method for battle experience
-        private static void AwardExperience(Pokemon pokemon, int expAmount)
+        // Helper method to get player move choice
+        private static string GetPlayerMove(Pokemon pokemon, int playerNumber)
         {
-            pokemon.Exp += expAmount;
-            Console.WriteLine($"{pokemon.Name} gained {expAmount} EXP!");
+            Console.WriteLine($"\nPlayer {playerNumber}'s turn with {pokemon.Name}");
+            Console.WriteLine($"1. Attack with {pokemon.Skill} (Damage: {pokemon.SkillDamage})");
+            Console.WriteLine("2. Defend (reduces damage from next attack)");
+            Console.Write("Choose your move: ");
+
+            if (!int.TryParse(Console.ReadLine(), out int moveChoice) || (moveChoice != 1 && moveChoice != 2))
+            {
+                Console.WriteLine("Invalid choice. Defaulting to attack.");
+                moveChoice = 1;
+            }
+
+            return moveChoice == 1 ? "attack" : "defend";
         }
 
+        // Helper method to execute a move
+        private static bool ExecuteMove(Pokemon attacker, Pokemon defender, string moveType, int playerNumber)
+        {
+            string playerLabel = playerNumber == 0 ? "AI" : $"Player {playerNumber}";
+            
+            if (moveType == "attack")
+            {
+                bool isCritical = IsCriticalHit();
+                double effectiveness = GetTypeEffectiveness(attacker.GetType().Name, defender.GetType().Name);
+                double damageMultiplier = effectiveness * (isCritical ? 2.0 : 1.0);
+                
+                Console.WriteLine($"{playerLabel}: {attacker.Name} uses {attacker.Skill} for {attacker.SkillDamage} base damage!");
+                
+                if (isCritical)
+                    Console.WriteLine("A critical hit!");
+                
+                int originalDefenderHP = defender.HP;
+                defender.CalculateDamage((int)(attacker.SkillDamage * damageMultiplier));
+                int damageDone = originalDefenderHP - defender.HP;
+
+                // Create effectiveness text based on the effectiveness value
+                string effectivenessText = effectiveness > 1.0 ? "It's super effective!" : 
+                                (effectiveness < 1.0 ? "It's not very effective..." : "");
+        
+                if (!string.IsNullOrEmpty(effectivenessText))
+                    Console.WriteLine(effectivenessText);
+            
+                Console.WriteLine($"{defender.Name} HP decreased by {damageDone} points! (HP: {defender.HP})");
+                
+                return false; // Not defending
+            }
+            else // defend
+            {
+                Console.WriteLine($"{playerLabel}: {attacker.Name} takes a defensive stance!");
+                return true; // Is defending
+            }
+        }
         // Create feature for training center
         private static void TrainPokemon(List<Pokemon> pokemonPocket)
         {
-            Console.WriteLine("\n=== Pokemon Training Center ===");
+            Console.WriteLine("\n=== Pokémon Training Center ===");
 
             if (pokemonPocket.Count == 0)
             {
-                Console.WriteLine("You don't have any Pokemon to train!");
+                Console.WriteLine("You don't have any Pokémon to train!");
                 return;
             }
 
             // List available Pokemon
-            Console.WriteLine("Choose a Pokemon to train:");
+            Console.WriteLine("Choose a Pokémon to train:");
             for (int i = 0; i < pokemonPocket.Count; i++)
             {
-                Console.WriteLine($"{i + 1}. {pokemonPocket[i].Name} ({pokemonPocket[i].GetType().Name}, HP: {pokemonPocket[i].HP}, Exp: {pokemonPocket[i].Exp})");
+                Console.WriteLine($"{i + 1}. {pokemonPocket[i].Name} ({pokemonPocket[i].GetType().Name})");
+                Console.WriteLine($"   HP: {pokemonPocket[i].HP}, Exp: {pokemonPocket[i].Exp}");
+                Console.WriteLine($"   Skill: {pokemonPocket[i].Skill} (Power: {pokemonPocket[i].SkillDamage})");
             }
 
-            Console.Write("\nSelect Pokemon (number): ");
+            Console.Write("\nSelect Pokémon (number): ");
             if (!int.TryParse(Console.ReadLine(), out int choice) ||
                 choice < 1 || choice > pokemonPocket.Count)
             {
@@ -532,10 +717,11 @@ namespace PokemonPocket
 
             Pokemon selectedPokemon = pokemonPocket[choice - 1];
 
-            Console.WriteLine("\n=== Training Options ===");
-            Console.WriteLine("1. HP Training (Increase HP by 10)");
-            Console.WriteLine("2. Experience Training (Gain 15 Exp)");
-            Console.WriteLine("3. Special Training (Random improvement)");
+            // Training options that reflect actual Pokémon games
+            Console.WriteLine("\n=== Training Facilities ===");
+            Console.WriteLine("1. HP Training (Gains +10 HP)");
+            Console.WriteLine("2. Battle Training (Gains +15 EXP)");
+            Console.WriteLine("3. Elite Four Challenge (Random stat boost, higher risk/reward)");
             Console.Write("Choose training type: ");
 
             if (!int.TryParse(Console.ReadLine(), out int trainingType) ||
@@ -545,14 +731,8 @@ namespace PokemonPocket
                 return;
             }
 
-            // Animation for training
-            Console.WriteLine("\nTraining in progress...");
-            for (int i = 0; i < 5; i++)
-            {
-                Console.Write(".");
-                Thread.Sleep(300);
-            }
-            Console.WriteLine("\n");
+            // Training progress animation
+            AnimateTraining(trainingType);
 
             // Apply training effects
             switch (trainingType)
@@ -560,47 +740,81 @@ namespace PokemonPocket
                 case 1: // HP Training
                     int originalHP = selectedPokemon.HP;
                     selectedPokemon.HP += 10;
-                    Console.WriteLine($"{selectedPokemon.Name}'s HP increased from {originalHP} to {selectedPokemon.HP}!");
+                    Console.WriteLine($"\n{selectedPokemon.Name} completed HP training!");
+                    Console.WriteLine($"HP: {originalHP} → {selectedPokemon.HP} (+10)");
                     break;
 
-                case 2: // Experience Training
+                case 2: // Battle Training
                     int originalExp = selectedPokemon.Exp;
                     selectedPokemon.Exp += 15;
-                    Console.WriteLine($"{selectedPokemon.Name}'s Experience increased from {originalExp} to {selectedPokemon.Exp}!");
+                    Console.WriteLine($"\n{selectedPokemon.Name} completed battle training!");
+                    Console.WriteLine($"EXP: {originalExp} → {selectedPokemon.Exp} (+15)");
                     break;
 
-                case 3: // Special Random Training
+                case 3: // Elite Four Challenge - Higher risk/reward
                     Random random = new Random();
-                    int randomTraining = random.Next(1, 4);
+                    int result = random.Next(1, 101); // 1-100
 
-                    switch (randomTraining)
-                    {
-                        case 1: // Big HP boost
-                            originalHP = selectedPokemon.HP;
-                            selectedPokemon.HP += 20;
-                            Console.WriteLine($"SPECIAL TRAINING SUCCESS! {selectedPokemon.Name}'s HP got a major boost from {originalHP} to {selectedPokemon.HP}!");
-                            break;
+                    if (result <= 20)
+                    { // 20% chance of failure
+                        Console.WriteLine($"\n{selectedPokemon.Name} was defeated by the Elite Four!");
+                        Console.WriteLine("No stats were improved, but it was a good learning experience.");
+                    }
+                    else if (result <= 80)
+                    { // 60% chance of decent improvement
+                        originalHP = selectedPokemon.HP;
+                        originalExp = selectedPokemon.Exp;
+                        int hpBoost = random.Next(5, 16); // 5-15
+                        int expBoost = random.Next(10, 21); // 10-20
 
-                        case 2: // Big Exp boost
-                            originalExp = selectedPokemon.Exp;
-                            selectedPokemon.Exp += 30;
-                            Console.WriteLine($"SPECIAL TRAINING SUCCESS! {selectedPokemon.Name}'s Experience got a major boost from {originalExp} to {selectedPokemon.Exp}!");
-                            break;
+                        selectedPokemon.HP += hpBoost;
+                        selectedPokemon.Exp += expBoost;
 
-                        case 3: // Both HP and Exp boost
-                            originalHP = selectedPokemon.HP;
-                            originalExp = selectedPokemon.Exp;
-                            selectedPokemon.HP += 10;
-                            selectedPokemon.Exp += 10;
-                            Console.WriteLine($"SPECIAL TRAINING SUCCESS! {selectedPokemon.Name} improved in both stats!");
-                            Console.WriteLine($"HP: {originalHP} → {selectedPokemon.HP}");
-                            Console.WriteLine($"Exp: {originalExp} → {selectedPokemon.Exp}");
-                            break;
+                        Console.WriteLine($"\n{selectedPokemon.Name} performed well against the Elite Four!");
+                        Console.WriteLine($"HP: {originalHP} → {selectedPokemon.HP} (+{hpBoost})");
+                        Console.WriteLine($"EXP: {originalExp} → {selectedPokemon.Exp} (+{expBoost})");
+                    }
+                    else
+                    { // 20% chance of excellent improvement
+                        originalHP = selectedPokemon.HP;
+                        originalExp = selectedPokemon.Exp;
+                        int hpBoost = random.Next(15, 26); // 15-25
+                        int expBoost = random.Next(20, 41); // 20-40
+
+                        selectedPokemon.HP += hpBoost;
+                        selectedPokemon.Exp += expBoost;
+
+                        Console.WriteLine($"\n{selectedPokemon.Name} DEFEATED the Elite Four!");
+                        Console.WriteLine($"HP: {originalHP} → {selectedPokemon.HP} (+{hpBoost})");
+                        Console.WriteLine($"EXP: {originalExp} → {selectedPokemon.Exp} (+{expBoost})");
                     }
                     break;
             }
 
             Console.WriteLine("\nTraining complete!");
+        }
+
+        private static void AnimateTraining(int trainingType)
+        {
+            Console.WriteLine("\nTraining in progress...");
+            string[] animations = {
+                "Warming up...",
+                "Building strength...",
+                "Practicing techniques...",
+                "Pushing limits...",
+                "Cooling down..."
+            };
+
+            foreach (string phase in animations)
+            {
+                Console.Write(phase);
+                for (int i = 0; i < 3; i++)
+                {
+                    Thread.Sleep(300);
+                    Console.Write(".");
+                }
+                Console.WriteLine();
+            }
         }
 
         // CREATIVE FEATURE #3: Save/Load System
@@ -770,7 +984,7 @@ namespace PokemonPocket
             {
                 // Make sure the database directory exists
                 Directory.CreateDirectory(DatabaseDirectory);
-                
+
                 using (var db = new PokemonDbContext(DatabasePath))
                 {
                     // Check if database has been seeded already
@@ -874,11 +1088,123 @@ namespace PokemonPocket
             }
         }
 
+        private static void AwardExperience(Pokemon pokemon, int expAmount)
+        {
+            int originalExp = pokemon.Exp;
+            pokemon.Exp += expAmount;
+
+            Console.WriteLine($"{pokemon.Name} gained {expAmount} experience points!");
+            Console.WriteLine($"EXP: {originalExp} → {pokemon.Exp}");
+
+            // Optional: Check if the Pokémon would be eligible for evolution after gaining exp
+            // This could encourage the player to use the evolution feature
+            if (pokemon.GetType().Name == "Pikachu" && originalExp < 50 && pokemon.Exp >= 50)
+            {
+                Console.WriteLine($"Your {pokemon.Name} seems ready for evolution! Check the evolution menu.");
+            }
+            else if (pokemon.GetType().Name == "Eevee" && originalExp < 40 && pokemon.Exp >= 40)
+            {
+                Console.WriteLine($"Your {pokemon.Name} seems ready for evolution! Check the evolution menu.");
+            }
+            else if (pokemon.GetType().Name == "Charmander" && originalExp < 30 && pokemon.Exp >= 30)
+            {
+                Console.WriteLine($"Your {pokemon.Name} seems ready for evolution! Check the evolution menu.");
+            }
+        }
+
         private static void PauseBeforeReturningToMenu()
         {
             Console.WriteLine("\nPress any key to return to the main menu...");
             Console.ReadKey(true);
             Console.Clear(); // Optional: clear the screen for a cleaner interface
+        }
+
+        private static double GetTypeEffectiveness(string attackerType, string defenderType)
+        {
+            // Basic type matchups (simplified from actual Pokémon games)
+            if (attackerType == "Pikachu" && defenderType == "Charmander")
+                return 1.5; // Electric is strong against Fire
+            if (attackerType == "Charmander" && defenderType == "Eevee")
+                return 1.5; // Fire is strong against Normal
+            if (attackerType == "Eevee" && defenderType == "Pikachu")
+                return 1.5; // Normal is strong against Electric
+
+            // For evolved forms
+            if (attackerType == "Raichu" && (defenderType == "Charmander" || defenderType == "Charmeleon"))
+                return 1.5;
+            if ((attackerType == "Charmeleon" || attackerType == "Charmander") &&
+                (defenderType == "Eevee" || defenderType == "Flareon"))
+                return 1.5;
+            if ((attackerType == "Eevee" || attackerType == "Flareon") &&
+                (defenderType == "Pikachu" || defenderType == "Raichu"))
+                return 1.5;
+
+            return 1.0; // Default - normal effectiveness
+        }
+        // Enhanced AI decision making
+        private static string GetAIMove(Pokemon aiPokemon, Pokemon playerPokemon)
+        {
+            Random random = new Random();
+            
+            // If AI's HP is low (below 30%), it has a higher chance to defend
+            if (aiPokemon.HP < 30 && random.Next(100) < 70)
+            {
+                return "defend";
+            }
+            
+            // If player's HP is low, AI is more likely to attack to finish them
+            if (playerPokemon.HP < 20 && random.Next(100) < 90)
+            {
+                return "attack";
+            }
+            
+            // Otherwise, AI has a 20% chance to defend, 80% to attack
+            return random.Next(100) < 20 ? "defend" : "attack";
+        }
+
+        private static bool IsCriticalHit()
+        {
+            Random random = new Random();
+            return random.Next(100) < 10; // 10% chance of critical hit
+        }
+
+        // Add this method to handle attacks when the defender is defending
+        private static void ExecuteMoveWithDefense(Pokemon attacker, Pokemon defender, string moveType, int playerNumber)
+        {
+            string playerLabel = playerNumber == 0 ? "AI" : $"Player {playerNumber}";
+            
+            if (moveType == "attack")
+            {
+                bool isCritical = IsCriticalHit();
+                double effectiveness = GetTypeEffectiveness(attacker.GetType().Name, defender.GetType().Name);
+                
+                // Defense reduces damage by 50%
+                double defenseModifier = 0.5;
+                double damageMultiplier = effectiveness * (isCritical ? 2.0 : 1.0) * defenseModifier;
+                
+                Console.WriteLine($"{playerLabel}: {attacker.Name} uses {attacker.Skill} for {attacker.SkillDamage} base damage!");
+                
+                if (isCritical)
+                    Console.WriteLine("A critical hit!");
+                
+                int originalDefenderHP = defender.HP;
+                defender.CalculateDamage((int)(attacker.SkillDamage * damageMultiplier));
+                int damageDone = originalDefenderHP - defender.HP;
+
+                // Create effectiveness text based on the effectiveness value
+                string effectivenessText = effectiveness > 1.0 ? "It's super effective!" : 
+                                (effectiveness < 1.0 ? "It's not very effective..." : "");
+        
+                if (!string.IsNullOrEmpty(effectivenessText))
+                    Console.WriteLine(effectivenessText);
+            
+                Console.WriteLine($"Defense reduced the damage! {defender.Name} HP decreased by only {damageDone} points! (HP: {defender.HP})");
+            }
+            else
+            {
+                Console.WriteLine($"{playerLabel}: {attacker.Name} is already defending and chooses to reinforce their defense!");
+                // If they choose to defend while already defending, nothing happens
+            }
         }
     }
 }
