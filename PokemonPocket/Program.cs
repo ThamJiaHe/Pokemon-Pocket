@@ -14,7 +14,7 @@ using PokemonPocket.Database;
 AI Acknowledgment:
 Parts of this project were developed with assistance from Copilot, an AI programming assistant. 
 Specifically, AI was used to:
-- Help implement the color coding for battle messages
+- Help implement the usability of the Pokémon Pocket Console Application
 - Debug issues with the battle mechanics
 - Suggest improvements for database operations
 - Provide feedback on code structure and organization
