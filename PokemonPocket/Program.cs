@@ -10,6 +10,20 @@ using PokemonPocket.Database;
 // Author: THAM JIA HE (244548T)
 // Date: 2025-05-10
 // Copyright (c) 2025 THAM JIA HE. All rights reserved.
+/*
+AI Acknowledgment:
+Parts of this project were developed with assistance from Copilot, an AI programming assistant. 
+Specifically, AI was used to:
+- Help implement the color coding for battle messages
+- Debug issues with the battle mechanics
+- Suggest improvements for database operations
+- Provide feedback on code structure and organization
+
+All core implementation, design decisions, and final code review were completed by me 
+(THAM JIA HE, 244548T). The AI was used as a programming assistant only, with all generated
+code being reviewed, understood, and modified by me before inclusion.
+*/
+
 
 // The information to create a Pokémon Pocket Console Application was inspired by the game *Pokemmo* I played when I was a kid and the scenario of the Assignment.
 
@@ -736,7 +750,7 @@ namespace PokemonPocket
                 Console.ResetColor();
                 return true; // Is defending
             }
-        
+
         }
 
         // Trains the Pokémon in the Training Center
