@@ -11,8 +11,37 @@ using PokemonPocket.Database;
 // Date: 2025-05-10
 // Copyright (c) 2025 THAM JIA HE. All rights reserved.
 
+// The information to create a Pokémon Pocket Console Application was inspired by the game *Pokemmo* I played when I was a kid and the scenario of the Assignment.
 
+/* To Create a Pokémon Pocket Console Application that allows Pokémon’s player:
+1. Add Pokémon to the pocket
+2. List Pokémon in the pocket in descending order of experience points (Exp)
+3. Check if Pokémon can evolve
+4. Evolve Pokémon  
+*/
 
+/*
+Additional Features I added to spice up the game and make it more fun and realistic:
+1. Battle Arena: Allow players to battle their Pokémon against each other or against AI and choose their moves like attack or defend.
+2. Training Center: Allow players to train their Pokémon to increase HP and EXP.
+3. Save & Load: Save Pokémon data to a database using SQLite or CSV files and load the game where they left off.
+4. Colourful Console Output: Use different colors for success and error messages to enhance user experience.
+*/
+
+/*
+The reason why I save the Pokémon data to CSV files apart from the database is to allow players to play on different devices or share their Pokémon data easily.
+I also added a database to store the Pokémon data, which allows for easy retrieval and management of Pokémon information.
+*/
+/*
+Technical Implementation Overview:
+- Object-oriented design with inheritance hierarchy for Pokémon types
+- SQLite database integration for persistent storage
+- Type-based battle mechanics with effectiveness multipliers
+- Intelligent AI opponent for single-player battles
+- Evolution system that transforms Pokémon into stronger forms
+*/
+
+// This is the main namespace for the Pokémon Pocket application  
 namespace PokemonPocket
 {
     class Program
@@ -23,7 +52,7 @@ namespace PokemonPocket
 
         static void Main(string[] args)
         {
-            // This list holds the evolution information for Pokémon
+            // Setup evolution information - this defines which Pokemon can evolve and what they evolve into
             List<PokemonMaster> pokemonMasters = new List<PokemonMaster>(){
                 new PokemonMaster("Pikachu", 2, "Raichu"),
                 new PokemonMaster("Eevee", 3, "Flareon"),
@@ -139,7 +168,7 @@ namespace PokemonPocket
             }
         }
 
-        // Add new Pokémon to the pocket
+        // Adding Pokémon to the Player's pocket
         private static void AddPokemon(List<Pokemon> pokemonPocket)
         {
             try
@@ -226,6 +255,7 @@ namespace PokemonPocket
             }
         }
 
+        // Determine Pokémon type based on the name
         private static string DeterminePokemonType(string name)
         {
             string lowerName = name.ToLower();
@@ -260,6 +290,7 @@ namespace PokemonPocket
             }
         }
 
+        // Display all Pokemon in the Player pocket in descending order of experience points (Exp)
         private static void ListPokemon(List<Pokemon> pokemonPocket)
         {
             if (pokemonPocket.Count == 0)
@@ -281,6 +312,7 @@ namespace PokemonPocket
             }
         }
 
+        // This checks against the evolution requirements in pokemonMasters list
         private static void CheckEvolution(List<Pokemon> pokemonPocket, List<PokemonMaster> pokemonMasters)
         {
             if (pokemonPocket.Count == 0)
@@ -306,6 +338,7 @@ namespace PokemonPocket
             }
         }
 
+        // Evolve the Pokemon to a stronger form
         private static void EvolvePokemon(List<Pokemon> pokemonPocket, List<PokemonMaster> pokemonMasters)
         {
             if (pokemonPocket.Count == 0)
@@ -327,7 +360,7 @@ namespace PokemonPocket
                     // Add dramatic evolution animation
                     Console.WriteLine($"\nPreparing to evolve {master.Name}...");
                     Thread.Sleep(1000);
-                    
+
                     // Sort by lowest exp first to evolve those
                     eligiblePokemon = eligiblePokemon.OrderBy(p => p.Exp).ToList();
 
@@ -339,11 +372,11 @@ namespace PokemonPocket
                     Console.WriteLine($"HP: {toEvolve.HP}");
                     Console.WriteLine($"Exp: {toEvolve.Exp}");
                     Console.WriteLine($"Skill: {toEvolve.Skill} (Power: {toEvolve.SkillDamage})");
-                    
+
                     // Calculate stat improvements (higher HP and retained EXP)
                     int newHP = toEvolve.HP + 50; // Evolution boosts HP
                     int retainedExp = toEvolve.Exp;
-                    
+
                     // Remove the Pokemon that will be evolved
                     for (int i = 0; i < master.NoToEvolve; i++)
                     {
@@ -353,10 +386,10 @@ namespace PokemonPocket
 
                     // Show evolution animation
                     ShowEvolutionAnimation();
-                    
+
                     // Create the evolved Pokemon
                     Pokemon evolvedPokemon = null;
-                    
+
                     switch (master.EvolveTo)
                     {
                         case "Raichu":
@@ -369,7 +402,7 @@ namespace PokemonPocket
                             evolvedPokemon = new Charmeleon(toEvolve.Name, newHP, retainedExp);
                             break;
                     }
-                    
+
                     // Show stats after evolution
                     Console.WriteLine($"\nAfter evolution:");
                     Console.WriteLine($"Name: {evolvedPokemon.Name}");
@@ -377,7 +410,7 @@ namespace PokemonPocket
                     Console.WriteLine($"HP: {evolvedPokemon.HP}");
                     Console.WriteLine($"Exp: {evolvedPokemon.Exp}");
                     Console.WriteLine($"Skill: {evolvedPokemon.Skill} (Power: {evolvedPokemon.SkillDamage})");
-                    
+
                     // Add the evolved Pokemon to the pocket
                     pokemonPocket.Add(evolvedPokemon);
                     Console.WriteLine($"\n{master.Name} evolved into {master.EvolveTo}!");
@@ -392,6 +425,8 @@ namespace PokemonPocket
             }
         }
 
+        // like the actual game it allows Pokemon to fight against each other but with a added twist of AI opponents
+        // Implements turn-based combat with attack/defend options and type effectiveness
         private static void BattleArena(List<Pokemon> pokemonPocket)
         {
             Console.WriteLine("Welcome to the Battle Arena!");
@@ -611,7 +646,7 @@ namespace PokemonPocket
                 else if (hp2Percent > hp1Percent)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"\n{pokemon2.Name} is knocked out! {pokemon1.Name} wins!");
+                    Console.WriteLine($"\n{pokemon2.Name} wins by having more HP remaining!");
                     Console.ResetColor();
                     AwardExperience(pokemon2, 15);
                 }
@@ -650,44 +685,61 @@ namespace PokemonPocket
             return moveChoice == 1 ? "attack" : "defend";
         }
 
-        // Helper method to execute a move
+        // Execute a move
         private static bool ExecuteMove(Pokemon attacker, Pokemon defender, string moveType, int playerNumber)
         {
             string playerLabel = playerNumber == 0 ? "AI" : $"Player {playerNumber}";
-            
+
             if (moveType == "attack")
             {
                 bool isCritical = IsCriticalHit();
                 double effectiveness = GetTypeEffectiveness(attacker.GetType().Name, defender.GetType().Name);
                 double damageMultiplier = effectiveness * (isCritical ? 2.0 : 1.0);
-                
+
                 Console.WriteLine($"{playerLabel}: {attacker.Name} uses {attacker.Skill} for {attacker.SkillDamage} base damage!");
-                
-                if (isCritical)
-                    Console.WriteLine("A critical hit!");
-                
+
+                // For critical hits
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("A critical hit!");
+                Console.ResetColor();
+
+                // For super effective moves
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("It's super effective!");
+                Console.ResetColor();
+
+                // For not very effective moves
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.WriteLine("It's not very effective...");
+                Console.ResetColor();
+
                 int originalDefenderHP = defender.HP;
                 defender.CalculateDamage((int)(attacker.SkillDamage * damageMultiplier));
                 int damageDone = originalDefenderHP - defender.HP;
 
                 // Create effectiveness text based on the effectiveness value
-                string effectivenessText = effectiveness > 1.0 ? "It's super effective!" : 
+                string effectivenessText = effectiveness > 1.0 ? "It's super effective!" :
                                 (effectiveness < 1.0 ? "It's not very effective..." : "");
-        
+
                 if (!string.IsNullOrEmpty(effectivenessText))
                     Console.WriteLine(effectivenessText);
-            
+
                 Console.WriteLine($"{defender.Name} HP decreased by {damageDone} points! (HP: {defender.HP})");
-                
+
                 return false; // Not defending
             }
             else // defend
             {
+                // For defense stance
+                Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.WriteLine($"{playerLabel}: {attacker.Name} takes a defensive stance!");
+                Console.ResetColor();
                 return true; // Is defending
             }
+        
         }
-        // Create feature for training center
+
+        // Trains the Pokémon in the Training Center
         private static void TrainPokemon(List<Pokemon> pokemonPocket)
         {
             Console.WriteLine("\n=== Pokémon Training Center ===");
@@ -793,7 +845,8 @@ namespace PokemonPocket
 
             Console.WriteLine("\nTraining complete!");
         }
-
+        // Visual animation for training to improve user experience
+        // Shows progress through different training phases        
         private static void AnimateTraining(int trainingType)
         {
             Console.WriteLine("\nTraining in progress...");
@@ -817,7 +870,7 @@ namespace PokemonPocket
             }
         }
 
-        // CREATIVE FEATURE #3: Save/Load System
+        // Allows saving/loading from both database and CSV files
         private static void SaveLoadMenu(List<Pokemon> pokemonPocket)
         {
             Console.WriteLine("\n=== Save/Load System ===");
@@ -852,6 +905,7 @@ namespace PokemonPocket
             // No need for PauseBeforeReturningToMenu() here since we call it after SaveLoadMenu in the main menu
         }
 
+        // Saves Pokemon data to CSV file for portability
         private static void SavePokemonData(List<Pokemon> pokemonPocket)
         {
             try
@@ -880,6 +934,7 @@ namespace PokemonPocket
             }
         }
 
+        // Loads Pokemon data from CSV file
         private static void LoadPokemonData(List<Pokemon> pokemonPocket)
         {
             if (!File.Exists(SaveFilePath))
@@ -951,33 +1006,8 @@ namespace PokemonPocket
             }
         }
 
-        // Evolution Animation
-        private static void ShowEvolutionAnimation()
-        {
-            Console.WriteLine("\nEvolution in progress:");
-
-            string[] evolutionFrames = {
-                "[ * * * ]",
-                "[* * * *]",
-                "[ * * * ]",
-                "[* * * *]",
-                "[**EVOLVING**]"
-            };
-
-            foreach (string frame in evolutionFrames)
-            {
-                Console.WriteLine(frame);
-                Thread.Sleep(500);
-                Console.SetCursorPosition(0, Console.CursorTop - 1);
-                Console.WriteLine(new string(' ', frame.Length));
-                Console.SetCursorPosition(0, Console.CursorTop - 1);
-            }
-
-            Console.WriteLine("EVOLUTION COMPLETE!");
-            Thread.Sleep(1000);
-        }
-
-        // Methods for database operations
+        // Sets up the SQLite database for storing Pokemon data
+        // Creates tables if they don't exist and seeds evolution data
         private static void InitializeDatabase(List<PokemonMaster> pokemonMasters)
         {
             try
@@ -1002,6 +1032,8 @@ namespace PokemonPocket
             }
         }
 
+        // Loads Pokemon from SQLite database into memory
+        // This allows the player to load their last saved Pokemon game play session. 
         private static void LoadPokemonFromDatabase(List<Pokemon> pokemonPocket)
         {
             try
@@ -1053,6 +1085,7 @@ namespace PokemonPocket
             }
         }
 
+        // Saves current Pokemon collection to SQLite database
         private static void SavePokemonToDatabase(List<Pokemon> pokemonPocket)
         {
             try
@@ -1088,6 +1121,34 @@ namespace PokemonPocket
             }
         }
 
+        // Visual animation for evolution to make the experience more engaging
+        // Mimics the flashing animation from the original Pokemon games
+        private static void ShowEvolutionAnimation()
+        {
+            Console.WriteLine("\nEvolution in progress:");
+
+            string[] evolutionFrames = {
+                "[ * * * ]",
+                "[* * * *]",
+                "[ * * * ]",
+                "[* * * *]",
+                "[**EVOLVING**]"
+            };
+
+            foreach (string frame in evolutionFrames)
+            {
+                Console.WriteLine(frame);
+                Thread.Sleep(500);
+                Console.SetCursorPosition(0, Console.CursorTop - 1);
+                Console.WriteLine(new string(' ', frame.Length));
+                Console.SetCursorPosition(0, Console.CursorTop - 1);
+            }
+
+            Console.WriteLine("EVOLUTION COMPLETE!");
+            Thread.Sleep(1000);
+        }
+        // Awards experience points to Pokemon after battles
+        // Also notifies player if Pokemon is ready for evolutio
         private static void AwardExperience(Pokemon pokemon, int expAmount)
         {
             int originalExp = pokemon.Exp;
@@ -1112,6 +1173,7 @@ namespace PokemonPocket
             }
         }
 
+        // Gives the player time to read messages before returning to the menu
         private static void PauseBeforeReturningToMenu()
         {
             Console.WriteLine("\nPress any key to return to the main menu...");
@@ -1119,6 +1181,7 @@ namespace PokemonPocket
             Console.Clear(); // Optional: clear the screen for a cleaner interface
         }
 
+        // Implements a simplified version of the type effectiveness chart from Pokemon games
         private static double GetTypeEffectiveness(string attackerType, string defenderType)
         {
             // Basic type matchups (simplified from actual Pokémon games)
@@ -1145,23 +1208,25 @@ namespace PokemonPocket
         private static string GetAIMove(Pokemon aiPokemon, Pokemon playerPokemon)
         {
             Random random = new Random();
-            
+
             // If AI's HP is low (below 30%), it has a higher chance to defend
             if (aiPokemon.HP < 30 && random.Next(100) < 70)
             {
                 return "defend";
             }
-            
+
             // If player's HP is low, AI is more likely to attack to finish them
             if (playerPokemon.HP < 20 && random.Next(100) < 90)
             {
                 return "attack";
             }
-            
+
             // Otherwise, AI has a 20% chance to defend, 80% to attack
             return random.Next(100) < 20 ? "defend" : "attack";
         }
 
+        // Determines if an attack is a critical hit (10% chance)   
+        // Adds an element of luck to battles, just like in the original games    
         private static bool IsCriticalHit()
         {
             Random random = new Random();
@@ -1169,35 +1234,36 @@ namespace PokemonPocket
         }
 
         // Add this method to handle attacks when the defender is defending
+        // Reduces damage by 50% to make the defend option worthwhile
         private static void ExecuteMoveWithDefense(Pokemon attacker, Pokemon defender, string moveType, int playerNumber)
         {
             string playerLabel = playerNumber == 0 ? "AI" : $"Player {playerNumber}";
-            
+
             if (moveType == "attack")
             {
                 bool isCritical = IsCriticalHit();
                 double effectiveness = GetTypeEffectiveness(attacker.GetType().Name, defender.GetType().Name);
-                
+
                 // Defense reduces damage by 50%
                 double defenseModifier = 0.5;
                 double damageMultiplier = effectiveness * (isCritical ? 2.0 : 1.0) * defenseModifier;
-                
+
                 Console.WriteLine($"{playerLabel}: {attacker.Name} uses {attacker.Skill} for {attacker.SkillDamage} base damage!");
-                
+
                 if (isCritical)
                     Console.WriteLine("A critical hit!");
-                
+
                 int originalDefenderHP = defender.HP;
                 defender.CalculateDamage((int)(attacker.SkillDamage * damageMultiplier));
                 int damageDone = originalDefenderHP - defender.HP;
 
                 // Create effectiveness text based on the effectiveness value
-                string effectivenessText = effectiveness > 1.0 ? "It's super effective!" : 
+                string effectivenessText = effectiveness > 1.0 ? "It's super effective!" :
                                 (effectiveness < 1.0 ? "It's not very effective..." : "");
-        
+
                 if (!string.IsNullOrEmpty(effectivenessText))
                     Console.WriteLine(effectivenessText);
-            
+
                 Console.WriteLine($"Defense reduced the damage! {defender.Name} HP decreased by only {damageDone} points! (HP: {defender.HP})");
             }
             else
