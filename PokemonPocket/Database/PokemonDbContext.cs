@@ -7,15 +7,15 @@ namespace PokemonPocket.Database
 {
     public class PokemonDbContext : IDisposable
     {
-        private readonly SqliteConnection _connection;
-        private bool _disposed = false;
+        private readonly SqliteConnection _connection; // SQLite connection to the database
+        private bool _disposed = false; 
         
         // Collection to hold Pokemon entities loaded from the database
         public List<PokemonEntity> Pokemons { get; private set; }
         
         // Collection to hold PokemonMaster entities loaded from the database
         public List<PokemonMasterEntity> PokemonMasters { get; private set; }
-
+        // Initializes the database context
         public PokemonDbContext(string databasePath = null)
         {
             // Use provided path or default path

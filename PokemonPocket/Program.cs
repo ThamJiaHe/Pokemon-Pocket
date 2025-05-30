@@ -14,7 +14,7 @@ using PokemonPocket.Database;
 AI Acknowledgment:
 Parts of this project were developed with assistance from Copilot, an AI programming assistant. 
 Specifically, AI was used to:
-- Help implement the usability of the Pokémon Pocket Console Application
+- Help implement the Usability of the Pokémon Pocket Console Application
 - Debug issues with the battle mechanics
 - Suggest improvements for database operations
 - Provide feedback on code structure and organization
@@ -24,14 +24,13 @@ All core implementation, design decisions, and final code review were completed 
 code being reviewed, understood, and modified by me before inclusion.
 */
 
-
 // The information to create a Pokémon Pocket Console Application was inspired by the game *Pokemmo* I played when I was a kid and the scenario of the Assignment.
 
 /* To Create a Pokémon Pocket Console Application that allows Pokémon’s player:
 1. Add Pokémon to the pocket
 2. List Pokémon in the pocket in descending order of experience points (Exp)
-3. Check if Pokémon can evolve
-4. Evolve Pokémon  
+3. Check if Pokémon can evolve 
+4. Evolve Pokémon to a stronger form  
 */
 
 /*
@@ -42,25 +41,19 @@ Additional Features I added to spice up the game and make it more fun and realis
 4. Colourful Console Output: Use different colors for success and error messages to enhance user experience.
 */
 
-/*
-The reason why I save the Pokémon data to CSV files apart from the database is to allow players to play on different devices or share their Pokémon data easily.
-I also added a database to store the Pokémon data, which allows for easy retrieval and management of Pokémon information.
-*/
-/*
-Technical Implementation Overview:
-- Object-oriented design with inheritance hierarchy for Pokémon types
-- SQLite database integration for persistent storage
-- Type-based battle mechanics with effectiveness multipliers
-- Intelligent AI opponent for single-player battles
-- Evolution system that transforms Pokémon into stronger forms
-*/
-
 // This is the main namespace for the Pokémon Pocket application  
 namespace PokemonPocket
 {
     class Program
     {
+        // Database and save file paths
+
+        // PokemonPocket\bin\Debug\net9.0\pokemon_save.csv
+        // This file will be used to save the Pokémon data in CSV format for readability and prortability
         private static readonly string SaveFilePath = "pokemon_save.csv";
+
+        // The database is stored in the output directory of the application
+        // PokemonPocket\bin\Debug\net9.0\Database\pokemon_pocket.db
         private static readonly string DatabaseDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Database");
         private static readonly string DatabasePath = Path.Combine(DatabaseDirectory, "pokemon_pocket.db");
 
@@ -117,42 +110,42 @@ namespace PokemonPocket
                         // Option 1: Add a new Pokémon to the pocket
                         case '1':
                             AddPokemon(pokemonPocket);
-                            PauseBeforeReturningToMenu(); // Add this line
+                            PauseBeforeReturningToMenu(); // Pause to allow the user to see the result
                             break;
                         // Option 2: List all Pokémon in the pocket
                         case '2':
                             ListPokemon(pokemonPocket);
-                            PauseBeforeReturningToMenu(); // Add this line
+                            PauseBeforeReturningToMenu(); // Pause to allow the user to see the result
                             break;
                         // Option 3: Check if I can evolve Pokémon
                         case '3':
                             CheckEvolution(pokemonPocket, pokemonMasters);
-                            PauseBeforeReturningToMenu(); // Add this line
+                            PauseBeforeReturningToMenu(); // Pause to allow the user to see the result
                             break;
                         // Option 4: Evolve Pokémon if possible
                         case '4':
                             EvolvePokemon(pokemonPocket, pokemonMasters);
-                            PauseBeforeReturningToMenu(); // Add this line
+                            PauseBeforeReturningToMenu(); // Pause to allow the user to see the result
                             break;
                         // Option 5: Battle Arena
                         case '5':
                             BattleArena(pokemonPocket);
-                            PauseBeforeReturningToMenu(); // Add this line
+                            PauseBeforeReturningToMenu(); // Pause to allow the user to see the result
                             break;
                         // Option 6: Training Center
                         case '6':
                             TrainPokemon(pokemonPocket);
-                            PauseBeforeReturningToMenu(); // Add this line
+                            PauseBeforeReturningToMenu(); // Pause to allow the user to see the result
                             break;
                         // Option 7: Save & Load
                         case '7':
                             SaveLoadMenu(pokemonPocket);
-                            PauseBeforeReturningToMenu(); // Add this line
+                            PauseBeforeReturningToMenu(); // Pause to allow the user to see the result
                             break;
-                        // Exit the program if the user enters 'q'Lowercase or 'Q'Uppercase
+                        // Exit the program if the user enters lowercase or uppercase q
                         case 'q':
                         case 'Q':
-                            Console.WriteLine("Saving your Pokémon data before exiting...");
+                            Console.WriteLine("Saving your Pokemon data before exiting...");
                             try
                             {
                                 // Make sure the directory exists before saving
@@ -165,18 +158,18 @@ namespace PokemonPocket
                             }
                             Console.WriteLine("Thank you for using Pokémon Pocket! Goodbye!");
                             running = false;
-                            Environment.Exit(0); // Ensure clean exit
+                            Environment.Exit(0); // Exit the application
                             break;
                         default:
                             // Handle invalid menu selection
-                            Console.WriteLine("Invalid choice. Please enter a number between 1 and 9 or Q to quit.");
+                            Console.WriteLine("Invalid choice. Please enter a number between 1 and 7 or Q to quit.");
                             break;
                     }
                 }
-
+                // Catch any errors that occur during the program execution
                 catch (Exception ex)
                 {
-                    // Handle any exceptions that occur during input or processing
+                    // Handle any error that occur during input or processing by displaying an error message
                     Console.WriteLine($"An error occurred: {ex.Message}");
                 }
             }
@@ -185,16 +178,18 @@ namespace PokemonPocket
         // Adding Pokémon to the Player's pocket
         private static void AddPokemon(List<Pokemon> pokemonPocket)
         {
-            try
+            // This method allows the user to add a new Pokémon to their pocket
+            try // Try block to catch any error that may occur during the adding of Pokemon
             {
                 // Prompt the user for Pokémon name 
                 Console.WriteLine("Enter the name of the Pokémon: ");
-                // Read the Pokémon name from the user
+                // Read the Pokémon name from the user input
                 string name = Console.ReadLine();
 
                 // Check if the name is empty or null
                 if (string.IsNullOrWhiteSpace(name))
                 {
+                    // If the name is empty, display an error message and return
                     Console.WriteLine("Name cannot be empty.");
                     return;
                 }
@@ -237,9 +232,11 @@ namespace PokemonPocket
                     return;
                 }
 
-                Pokemon newPokemon = null;
+                Pokemon newPokemon = null; // Initialize the new Pokémon variable
 
-                // Create a new Pokémon object based on the type
+                // Create a new Pokémon object based on the type selected
+                // Use a switch statement to determine what type of Pokémon to create based on user input
+                // Use ToLower() to handle case insensitivity
                 switch (pokemonType.ToLower())
                 {
                     case "pikachu":
@@ -252,12 +249,22 @@ namespace PokemonPocket
                         newPokemon = new Charmander(name, hp, exp);
                         break;
                 }
-
-                pokemonPocket.Add(newPokemon);
-                // Set text color to green for success messages
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Pokemon successfully added!");
-                Console.ResetColor(); // Reset to default color
+                if (newPokemon != null)
+                {
+                    // Check if the new Pokémon was created successfully
+                    pokemonPocket.Add(newPokemon);
+                    // Set text color to green for success messages (Colorful output to make it more user-friendly and engaging)
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("Pokemon successfully added.");
+                    Console.ResetColor();
+                }
+                else
+                {
+                    // Set text color to red for error messages
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Pokemon not added successfully.");
+                    Console.ResetColor();
+                }
             }
             catch (Exception ex)
             {
@@ -439,7 +446,7 @@ namespace PokemonPocket
             }
         }
 
-        // like the actual game it allows Pokemon to fight against each other but with a added twist of AI opponents
+        // Battle two Pokémon with optional AI opponent
         // Implements turn-based combat with attack/defend options and type effectiveness
         private static void BattleArena(List<Pokemon> pokemonPocket)
         {
@@ -638,7 +645,7 @@ namespace PokemonPocket
                 // Pause between rounds
                 if (round < 3)
                 {
-                    Console.WriteLine("\n--- Preparing for next round ---");
+                    Console.WriteLine("\n--- Preparing for next round ---"); // Pause before next round  to allow players to strategize like in the actual Pokémon games 
                     Thread.Sleep(1500);
                 }
             }
@@ -646,12 +653,12 @@ namespace PokemonPocket
             // Determine the winner if neither knocked out after 3 rounds
             if (pokemon1.HP > 0 && pokemon2.HP > 0)
             {
-                double hp1Percent = (double)pokemon1.HP / originalHP1;
-                double hp2Percent = (double)pokemon2.HP / originalHP2;
+                double hp1Percent = (double)pokemon1.HP / originalHP1; // Calculate remaining HP percentage for pokemon1
+                double hp2Percent = (double)pokemon2.HP / originalHP2; // Calculate remaining HP percentage for pokemon2
 
                 if (hp1Percent > hp2Percent)
                 {
-                    // When a Pokémon wins
+                    // When a Pokémon1 wins
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine($"\n{pokemon1.Name} wins by having more HP remaining!");
                     Console.ResetColor();
@@ -659,6 +666,7 @@ namespace PokemonPocket
                 }
                 else if (hp2Percent > hp1Percent)
                 {
+                    // When a Pokémon2 wins
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine($"\n{pokemon2.Name} wins by having more HP remaining!");
                     Console.ResetColor();
@@ -675,7 +683,7 @@ namespace PokemonPocket
                 }
             }
 
-            // Reset Pokémon HP after the battle
+            // Restore Pokémon HP after the battle
             pokemon1.HP = originalHP1;
             pokemon2.HP = originalHP2;
 
@@ -685,6 +693,7 @@ namespace PokemonPocket
         // Helper method to get player move choice
         private static string GetPlayerMove(Pokemon pokemon, int playerNumber)
         {
+            // Display available moves and get player's choice
             Console.WriteLine($"\nPlayer {playerNumber}'s turn with {pokemon.Name}");
             Console.WriteLine($"1. Attack with {pokemon.Skill} (Damage: {pokemon.SkillDamage})");
             Console.WriteLine("2. Defend (reduces damage from next attack)");
@@ -787,7 +796,6 @@ namespace PokemonPocket
             Console.WriteLine("\n=== Training Facilities ===");
             Console.WriteLine("1. HP Training (Gains +10 HP)");
             Console.WriteLine("2. Battle Training (Gains +15 EXP)");
-            Console.WriteLine("3. Elite Four Challenge (Random stat boost, higher risk/reward)");
             Console.Write("Choose training type: ");
 
             if (!int.TryParse(Console.ReadLine(), out int trainingType) ||
@@ -815,45 +823,6 @@ namespace PokemonPocket
                     selectedPokemon.Exp += 15;
                     Console.WriteLine($"\n{selectedPokemon.Name} completed battle training!");
                     Console.WriteLine($"EXP: {originalExp} → {selectedPokemon.Exp} (+15)");
-                    break;
-
-                case 3: // Elite Four Challenge - Higher risk/reward
-                    Random random = new Random();
-                    int result = random.Next(1, 101); // 1-100
-
-                    if (result <= 20)
-                    { // 20% chance of failure
-                        Console.WriteLine($"\n{selectedPokemon.Name} was defeated by the Elite Four!");
-                        Console.WriteLine("No stats were improved, but it was a good learning experience.");
-                    }
-                    else if (result <= 80)
-                    { // 60% chance of decent improvement
-                        originalHP = selectedPokemon.HP;
-                        originalExp = selectedPokemon.Exp;
-                        int hpBoost = random.Next(5, 16); // 5-15
-                        int expBoost = random.Next(10, 21); // 10-20
-
-                        selectedPokemon.HP += hpBoost;
-                        selectedPokemon.Exp += expBoost;
-
-                        Console.WriteLine($"\n{selectedPokemon.Name} performed well against the Elite Four!");
-                        Console.WriteLine($"HP: {originalHP} → {selectedPokemon.HP} (+{hpBoost})");
-                        Console.WriteLine($"EXP: {originalExp} → {selectedPokemon.Exp} (+{expBoost})");
-                    }
-                    else
-                    { // 20% chance of excellent improvement
-                        originalHP = selectedPokemon.HP;
-                        originalExp = selectedPokemon.Exp;
-                        int hpBoost = random.Next(15, 26); // 15-25
-                        int expBoost = random.Next(20, 41); // 20-40
-
-                        selectedPokemon.HP += hpBoost;
-                        selectedPokemon.Exp += expBoost;
-
-                        Console.WriteLine($"\n{selectedPokemon.Name} DEFEATED the Elite Four!");
-                        Console.WriteLine($"HP: {originalHP} → {selectedPokemon.HP} (+{hpBoost})");
-                        Console.WriteLine($"EXP: {originalExp} → {selectedPokemon.Exp} (+{expBoost})");
-                    }
                     break;
             }
 
@@ -887,6 +856,7 @@ namespace PokemonPocket
         // Allows saving/loading from both database and CSV files
         private static void SaveLoadMenu(List<Pokemon> pokemonPocket)
         {
+            // Display the save/load menu options
             Console.WriteLine("\n=== Save/Load System ===");
             Console.WriteLine("1. Save Pokemon to database");
             Console.WriteLine("2. Load Pokemon from database");
@@ -894,6 +864,7 @@ namespace PokemonPocket
             Console.WriteLine("4. Import Pokemon from file");
             Console.Write("Choose an option: ");
 
+            // Read user input and validate the choice
             if (!int.TryParse(Console.ReadLine(), out int choice) ||
                 choice < 1 || choice > 4)
             {
@@ -909,10 +880,10 @@ namespace PokemonPocket
                 case 2: // Load from database
                     LoadPokemonFromDatabase(pokemonPocket);
                     break;
-                case 3: // Export to file
+                case 3: // Export to CSV file
                     SavePokemonData(pokemonPocket);
                     break;
-                case 4: // Import from file
+                case 4: // Import from CSV file
                     LoadPokemonData(pokemonPocket);
                     break;
             }
@@ -924,7 +895,7 @@ namespace PokemonPocket
         {
             try
             {
-                // Animation
+                // Animation of saving data to make it more engaging and realistic
                 Console.WriteLine("\nSaving your Pokemon data...");
 
                 using (StreamWriter writer = new StreamWriter(SaveFilePath))
@@ -1194,11 +1165,9 @@ namespace PokemonPocket
             Console.ReadKey(true);
             Console.Clear(); // Optional: clear the screen for a cleaner interface
         }
-
-        // Implements a simplified version of the type effectiveness chart from Pokemon games
+        // Determines the effectiveness of a move based on Pokémon types
         private static double GetTypeEffectiveness(string attackerType, string defenderType)
         {
-            // Basic type matchups (simplified from actual Pokémon games)
             if (attackerType == "Pikachu" && defenderType == "Charmander")
                 return 1.5; // Electric is strong against Fire
             if (attackerType == "Charmander" && defenderType == "Eevee")
@@ -1239,15 +1208,13 @@ namespace PokemonPocket
             return random.Next(100) < 20 ? "defend" : "attack";
         }
 
-        // Determines if an attack is a critical hit (10% chance)   
-        // Adds an element of luck to battles, just like in the original games    
+        // Determines if the move is a critical hit
         private static bool IsCriticalHit()
         {
-            Random random = new Random();
+            Random random = new Random();// Random number generator for critical hit chance
             return random.Next(100) < 10; // 10% chance of critical hit
         }
 
-        // Add this method to handle attacks when the defender is defending
         // Reduces damage by 50% to make the defend option worthwhile
         private static void ExecuteMoveWithDefense(Pokemon attacker, Pokemon defender, string moveType, int playerNumber)
         {
