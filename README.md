@@ -64,7 +64,7 @@ The application presents a menu-driven interface:
 
 ## Credits
 
-Developed by THAM JIA HE (244548T) - 2025
+Developed by THAM JIA HE - 2025
 
 Inspired by the Pokémon games and created as part of an advanced programming assignment.
 
