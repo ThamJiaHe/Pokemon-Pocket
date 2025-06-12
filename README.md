@@ -22,7 +22,6 @@ A comprehensive Pokémon management system with battle arena, training center, e
 ### Training System
 - **HP Training**: Direct HP improvements
 - **Battle Training**: EXP gains for potential evolution
-- **Elite Four Challenge**: Risk/reward system with variable outcomes
 
 ### Evolution Mechanics
 - **Pikachu → Raichu**: Requires 2 Pikachu
